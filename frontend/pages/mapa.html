@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bubbly — Mapa Social</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:16px; }
+    .logo { font-family:'Syne',sans-serif; font-size:48px; font-weight:800;
+      background:linear-gradient(135deg,#e2e8f0,#a78bfa,#38bdf8);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .msg { color:var(--text-muted); font-size:14px; }
+    .user-info { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+      padding:16px 24px; border-radius:12px; text-align:center; }
+    .btn-out { margin-top:12px; }
+  </style>
+</head>
+<body>
+  <div class="dot-bg"></div>
+  <div class="logo">Bubbly 🫧</div>
+  <div class="user-info">
+    <div id="bienvenida" style="font-weight:600; font-size:16px; margin-bottom:4px;"></div>
+    <div id="aura-info" style="font-size:13px; color:var(--text-muted);"></div>
+  </div>
+  <div class="msg">El mapa social viene en el siguiente paso 👀</div>
+  <button class="btn btn-ghost btn-out" onclick="cerrarSesion()">Cerrar sesión</button>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem('bubbly_usuario') || 'null');
+    if (!usuario) window.location.href = 'login.html';
+
+    const avatarEmoji = { gato:'🐱', zorro:'🦊', pulpo:'🐙', oso:'🐻' };
+    document.getElementById('bienvenida').textContent = `¡Hola, ${usuario.apodo}! ${avatarEmoji[usuario.avatarAnonimo] || '🫧'}`;
+    document.getElementById('aura-info').textContent = `Carrera: ${usuario.carrera} · Aura: ${usuario.tipoAura}`;
+
+    function cerrarSesion() {
+      localStorage.removeItem('bubbly_token');
+      localStorage.removeItem('bubbly_usuario');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
