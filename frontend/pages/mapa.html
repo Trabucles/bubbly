@@ -3,42 +3,616 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <title>Bubbly — Mapa Social</title>
   <link rel="stylesheet" href="../css/global.css">
   <style>
-    body { display:flex; align-items:center; justify-content:center; min-height:100vh; flex-direction:column; gap:16px; }
-    .logo { font-family:'Syne',sans-serif; font-size:48px; font-weight:800;
-      background:linear-gradient(135deg,#e2e8f0,#a78bfa,#38bdf8);
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .msg { color:var(--text-muted); font-size:14px; }
-    .user-info { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-      padding:16px 24px; border-radius:12px; text-align:center; }
-    .btn-out { margin-top:12px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #080812;
+      color: #e2e8f0;
+      font-family: 'Space Grotesk', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 16px;
+      background: rgba(8,8,18,0.9);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      backdrop-filter: blur(10px);
+      z-index: 100; flex-shrink: 0;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif; font-size: clamp(20px, 4vw, 26px); font-weight: 800;
+      background: linear-gradient(135deg, #e2e8f0, #a78bfa, #38bdf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .nav-actions { display: flex; gap: 8px; align-items: center; }
+    .nav-btn {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 7px 10px; color: #94a3b8; cursor: pointer;
+      font-size: 12px; font-family: 'Space Grotesk', sans-serif;
+      transition: all 0.2s; display: flex; align-items: center; gap: 5px;
+    }
+    .nav-btn:hover { background: rgba(124,58,237,0.15); border-color: #7c3aed; color: #a78bfa; }
+    .nav-btn.danger:hover { background: rgba(239,68,68,0.1); border-color: #ef4444; color: #fca5a5; }
+
+    /* ===== LAYOUT PRINCIPAL ===== */
+    .main-layout {
+      flex: 1; display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: 1fr auto;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Desktop: sidebar derecho */
+    @media (min-width: 768px) {
+      .main-layout {
+        grid-template-columns: 1fr 200px;
+        grid-template-rows: 1fr auto;
+      }
+      .sidebar { display: flex !important; }
+    }
+
+    /* ===== MAPA DE BURBUJAS ===== */
+    .mapa-area {
+      position: relative; overflow: hidden;
+      background: radial-gradient(ellipse at 30% 40%, rgba(124,58,237,0.06) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 70%, rgba(6,182,212,0.04) 0%, transparent 60%),
+                  #080812;
+    }
+
+    /* Puntos de fondo */
+    .mapa-area::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+    }
+
+    /* ===== BURBUJAS ===== */
+    .burbuja {
+      position: absolute;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      will-change: transform;
+    }
+    .burbuja:hover { transform: scale(1.12) !important; z-index: 10; }
+    .burbuja:active { transform: scale(0.95) !important; }
+
+    .burbuja-inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 2px;
+      border: 2px solid rgba(255,255,255,0.15);
+      overflow: hidden; position: relative;
+    }
+    .burbuja-foto {
+      width: 55%; height: 55%; border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; color: white;
+      overflow: hidden;
+    }
+    .burbuja-foto img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+    .burbuja-nombre { font-size: clamp(8px, 1.5vw, 11px); font-weight: 600; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
+    .burbuja-aura-icon { font-size: clamp(7px, 1.2vw, 9px); opacity: 0.8; }
+
+    /* Colores por tipo de aura */
+    .aura-legendaria .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(255,215,0,0.4), rgba(255,140,0,0.2)); box-shadow: 0 0 20px rgba(255,215,0,0.4), inset 0 0 20px rgba(255,215,0,0.1); border-color: rgba(255,215,0,0.5); }
+    .aura-popular    .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(255,105,180,0.4), rgba(236,72,153,0.2)); box-shadow: 0 0 20px rgba(255,105,180,0.4), inset 0 0 20px rgba(255,105,180,0.1); border-color: rgba(255,105,180,0.5); }
+    .aura-misteriosa .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(106,13,173,0.5), rgba(124,58,237,0.2)); box-shadow: 0 0 20px rgba(106,13,173,0.5), inset 0 0 20px rgba(124,58,237,0.1); border-color: rgba(167,139,250,0.5); }
+    .aura-caotica    .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(255,45,45,0.4), rgba(220,38,38,0.2)); box-shadow: 0 0 20px rgba(255,45,45,0.4), inset 0 0 20px rgba(255,45,45,0.1); border-color: rgba(255,45,45,0.5); }
+    .aura-toxica     .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(57,255,20,0.3), rgba(34,197,94,0.2)); box-shadow: 0 0 20px rgba(57,255,20,0.3), inset 0 0 20px rgba(57,255,20,0.1); border-color: rgba(57,255,20,0.5); }
+    .aura-inteligente .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(0,191,255,0.4), rgba(56,189,248,0.2)); box-shadow: 0 0 20px rgba(0,191,255,0.4), inset 0 0 20px rgba(0,191,255,0.1); border-color: rgba(0,191,255,0.5); }
+    .aura-nueva      .burbuja-inner { background: radial-gradient(circle at 35% 35%, rgba(100,116,139,0.3), rgba(71,85,105,0.2)); box-shadow: 0 0 12px rgba(100,116,139,0.2); border-color: rgba(100,116,139,0.3); }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      display: none;
+      flex-direction: column;
+      background: rgba(15,15,26,0.95);
+      border-left: 1px solid rgba(255,255,255,0.07);
+      padding: 16px 12px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+
+    .mi-perfil-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 14px; text-align: center;
+    }
+    .mi-burbuja-preview {
+      width: 60px; height: 60px; border-radius: 50%;
+      margin: 0 auto 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 700; color: white;
+    }
+    .mi-apodo { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .mi-carrera { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+    .mi-aura-badge {
+      display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 20px; letter-spacing: 0.05em;
+    }
+
+    .color-anonimo-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 12px; text-align: center;
+    }
+    .color-anonimo-card p { font-size: 10px; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .color-dot-big {
+      width: 32px; height: 32px; border-radius: 50%; margin: 0 auto 6px;
+    }
+    .color-nombre { font-size: 12px; font-weight: 600; }
+
+    .stats-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 12px;
+    }
+    .stats-card p { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .stat-label { font-size: 11px; color: #94a3b8; }
+    .stat-val { font-size: 13px; font-weight: 700; }
+
+    /* ===== TICKER ===== */
+    .ticker-bar {
+      height: 44px; background: rgba(15,15,26,0.95);
+      border-top: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; overflow: hidden;
+      flex-shrink: 0; position: relative; z-index: 50;
+    }
+    .ticker-btn {
+      flex-shrink: 0; width: 36px; height: 100%;
+      background: rgba(124,58,237,0.2); border: none; border-right: 1px solid rgba(255,255,255,0.07);
+      color: #a78bfa; cursor: pointer; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .ticker-btn:hover { background: rgba(124,58,237,0.4); }
+    .ticker-track { flex: 1; overflow: hidden; position: relative; }
+    .ticker-content {
+      display: flex; align-items: center; gap: 40px;
+      white-space: nowrap; animation: tickerMove 30s linear infinite;
+      padding-left: 20px;
+    }
+    .ticker-content:hover { animation-play-state: paused; }
+    @keyframes tickerMove { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .ticker-msg { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #94a3b8; }
+    .ticker-color-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+    .tc-violeta { background: #8B5CF6; }
+    .tc-azul    { background: #38BDF8; }
+    .tc-rosa    { background: #F472B6; }
+    .tc-naranja { background: #FB923C; }
+
+    /* ===== PANEL DE PERFIL (al hacer clic en burbuja) ===== */
+    .perfil-panel {
+      position: fixed; top: 0; right: -320px; width: 300px; height: 100vh;
+      background: rgba(15,15,26,0.98); border-left: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(20px); z-index: 200;
+      transition: right 0.3s ease; padding: 20px 16px;
+      display: flex; flex-direction: column; gap: 14px;
+      overflow-y: auto;
+    }
+    .perfil-panel.open { right: 0; }
+
+    .panel-header { display: flex; justify-content: space-between; align-items: center; }
+    .panel-close { background: none; border: none; color: #64748b; cursor: pointer; font-size: 20px; padding: 4px; }
+    .panel-close:hover { color: #e2e8f0; }
+
+    .panel-burbuja {
+      width: 80px; height: 80px; border-radius: 50%; margin: 0 auto;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 700; color: white;
+    }
+    .panel-apodo { font-size: 18px; font-weight: 700; text-align: center; }
+    .panel-carrera { font-size: 12px; color: #64748b; text-align: center; }
+    .panel-descripcion { font-size: 13px; color: #94a3b8; text-align: center; line-height: 1.5; }
+
+    .panel-aura-badge {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      margin: 0 auto; width: fit-content;
+    }
+
+    .aura-score-bar { width: 100%; }
+    .aura-score-bar p { font-size: 11px; color: #64748b; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .score-track { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+    .score-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+
+    .reacciones-label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; }
+    .reacciones-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .reaccion-btn {
+      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; padding: 10px 6px; cursor: pointer;
+      text-align: center; transition: all 0.2s; font-size: 22px;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+    }
+    .reaccion-btn span { font-size: 10px; color: #64748b; }
+    .reaccion-btn:hover { background: rgba(255,255,255,0.08); transform: scale(1.05); }
+    .reaccion-btn.activa { border-color: #a78bfa; background: rgba(167,139,250,0.1); box-shadow: 0 0 12px rgba(167,139,250,0.2); }
+
+    /* Overlay para cerrar panel en móvil */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      z-index: 199; display: none;
+    }
+    .overlay.show { display: block; }
+
+    /* Modal ticker */
+    .ticker-modal {
+      position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%) translateY(20px);
+      width: min(360px, 90vw);
+      background: rgba(15,15,26,0.98); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 16px; z-index: 300;
+      opacity: 0; pointer-events: none; transition: all 0.25s;
+    }
+    .ticker-modal.open { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+    .ticker-modal h4 { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+    .ticker-modal textarea {
+      width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; color: #e2e8f0; font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px; padding: 10px; resize: none; height: 80px; outline: none;
+    }
+    .ticker-modal textarea:focus { border-color: #a78bfa; }
+    .ticker-modal-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .char-count { font-size: 11px; color: #64748b; }
+    .char-count.warn { color: #f59e0b; }
   </style>
 </head>
 <body>
-  <div class="dot-bg"></div>
-  <div class="logo">Bubbly 🫧</div>
-  <div class="user-info">
-    <div id="bienvenida" style="font-weight:600; font-size:16px; margin-bottom:4px;"></div>
-    <div id="aura-info" style="font-size:13px; color:var(--text-muted);"></div>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">Bubbly 🫧</div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="verRanking()">🏆 Ranking</button>
+      <button class="nav-btn" id="btn-matches">💞 Matches</button>
+      <button class="nav-btn danger" onclick="cerrarSesion()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- LAYOUT PRINCIPAL -->
+  <div class="main-layout">
+
+    <!-- MAPA DE BURBUJAS -->
+    <div class="mapa-area" id="mapa">
+      <!-- Las burbujas se generan con JS -->
+    </div>
+
+    <!-- SIDEBAR - perfil propio (solo desktop) -->
+    <aside class="sidebar" id="sidebar">
+      <div class="mi-perfil-card">
+        <div class="mi-burbuja-preview" id="mi-burbuja-preview"></div>
+        <div class="mi-apodo" id="mi-apodo">—</div>
+        <div class="mi-carrera" id="mi-carrera">—</div>
+        <span class="mi-aura-badge" id="mi-aura-badge">Nueva</span>
+      </div>
+      <div class="color-anonimo-card">
+        <p>Tu color anónimo</p>
+        <div class="color-dot-big" id="mi-color-dot"></div>
+        <div class="color-nombre" id="mi-color-nombre">—</div>
+      </div>
+      <div class="stats-card">
+        <p>Mis estadísticas</p>
+        <div class="stat-row">
+          <span class="stat-label">Aura Score</span>
+          <span class="stat-val" id="mi-score">0</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Temporada</span>
+          <span class="stat-val">1</span>
+        </div>
+      </div>
+    </aside>
+
   </div>
-  <div class="msg">El mapa social viene en el siguiente paso 👀</div>
-  <button class="btn btn-ghost btn-out" onclick="cerrarSesion()">Cerrar sesión</button>
+
+  <!-- TICKER -->
+  <div class="ticker-bar">
+    <button class="ticker-btn" onclick="abrirTickerModal()" title="Publicar en el ticker">+</button>
+    <div class="ticker-track">
+      <div class="ticker-content" id="ticker-content">
+        <!-- se llena con JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL DE PERFIL (al hacer clic en burbuja) -->
+  <div class="overlay" id="overlay" onclick="cerrarPanel()"></div>
+  <div class="perfil-panel" id="perfil-panel">
+    <div class="panel-header">
+      <span style="font-size:13px;color:#64748b;">Perfil</span>
+      <button class="panel-close" onclick="cerrarPanel()">✕</button>
+    </div>
+    <div class="panel-burbuja" id="panel-burbuja"></div>
+    <div class="panel-apodo" id="panel-apodo">—</div>
+    <div class="panel-carrera" id="panel-carrera">—</div>
+    <div class="panel-descripcion" id="panel-descripcion"></div>
+    <div class="panel-aura-badge" id="panel-aura-badge"></div>
+    <div class="aura-score-bar">
+      <p><span>Aura Score</span><span id="panel-score">0</span></p>
+      <div class="score-track"><div class="score-fill" id="panel-score-fill" style="width:0%"></div></div>
+    </div>
+    <div class="reacciones-label">Reaccionar</div>
+    <div class="reacciones-grid" id="reacciones-grid">
+      <div class="reaccion-btn" onclick="reaccionar('❤️')" data-tipo="❤️">❤️<span>Like</span></div>
+      <div class="reaccion-btn" onclick="reaccionar('👍')" data-tipo="👍">👍<span>Buena onda</span></div>
+      <div class="reaccion-btn" onclick="reaccionar('🔥')" data-tipo="🔥">🔥<span>Fuego</span></div>
+      <div class="reaccion-btn" onclick="reaccionar('👀')" data-tipo="👀">👀<span>Te veo</span></div>
+      <div class="reaccion-btn" onclick="reaccionar('😭')" data-tipo="😭">😭<span>Meh</span></div>
+      <div class="reaccion-btn" onclick="reaccionar('🤮')" data-tipo="🤮">🤮<span>No gracias</span></div>
+    </div>
+  </div>
+
+  <!-- MODAL TICKER -->
+  <div class="ticker-modal" id="ticker-modal">
+    <h4>📢 Publicar en el ticker</h4>
+    <textarea id="ticker-texto" placeholder="¿Qué quieres decirle al campus?" maxlength="140" oninput="actualizarContador()"></textarea>
+    <div class="ticker-modal-footer">
+      <span class="char-count" id="char-count">140 caracteres restantes</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="cerrarTickerModal()" style="padding:6px 12px;font-size:12px;">Cancelar</button>
+        <button class="btn btn-primary" onclick="publicarTicker()" style="padding:6px 14px;font-size:12px;">Publicar 🫧</button>
+      </div>
+    </div>
+  </div>
 
   <script>
+    // ===== DATOS DE SESIÓN =====
     const usuario = JSON.parse(localStorage.getItem('bubbly_usuario') || 'null');
-    if (!usuario) window.location.href = 'login.html';
+    const token = localStorage.getItem('bubbly_token');
+    if (!usuario || !token) window.location.href = 'login.html';
 
-    const avatarEmoji = { gato:'🐱', zorro:'🦊', pulpo:'🐙', oso:'🐻' };
-    document.getElementById('bienvenida').textContent = `¡Hola, ${usuario.apodo}! ${avatarEmoji[usuario.avatarAnonimo] || '🫧'}`;
-    document.getElementById('aura-info').textContent = `Carrera: ${usuario.carrera} · Aura: ${usuario.tipoAura}`;
+    const API = 'http://localhost:3001/api';
+
+    // ===== CONFIGURACIÓN DE AURAS =====
+    const AURAS = {
+      legendaria: { color: '#FFD700', bg: 'rgba(255,215,0,0.15)', emoji: '✦', label: 'Legendaria' },
+      popular:    { color: '#FF69B4', bg: 'rgba(255,105,180,0.15)', emoji: '💫', label: 'Popular' },
+      misteriosa: { color: '#a78bfa', bg: 'rgba(167,139,250,0.15)', emoji: '🌙', label: 'Misteriosa' },
+      caotica:    { color: '#FF2D2D', bg: 'rgba(255,45,45,0.15)', emoji: '⚡', label: 'Caótica' },
+      toxica:     { color: '#39FF14', bg: 'rgba(57,255,20,0.12)', emoji: '☠️', label: 'Tóxica' },
+      inteligente:{ color: '#00BFFF', bg: 'rgba(0,191,255,0.15)', emoji: '🧠', label: 'Inteligente' },
+      nueva:      { color: '#64748b', bg: 'rgba(100,116,139,0.1)', emoji: '🫧', label: 'Nueva' },
+    };
+
+    const COLORES = {
+      violeta: { hex: '#8B5CF6', clase: 'tc-violeta' },
+      azul:    { hex: '#38BDF8', clase: 'tc-azul' },
+      rosa:    { hex: '#F472B6', clase: 'tc-rosa' },
+      naranja: { hex: '#FB923C', clase: 'tc-naranja' },
+    };
+
+    // ===== PERFIL PROPIO EN SIDEBAR =====
+    function iniciarSidebar() {
+      const aura = AURAS[usuario.tipoAura] || AURAS.nueva;
+      const color = COLORES[usuario.colorAnonimo] || COLORES.violeta;
+
+      // Burbuja preview
+      const preview = document.getElementById('mi-burbuja-preview');
+      preview.textContent = usuario.apodo ? usuario.apodo[0].toUpperCase() : '?';
+      preview.style.background = `radial-gradient(circle at 35% 35%, ${aura.color}40, ${aura.color}15)`;
+      preview.style.boxShadow = `0 0 20px ${aura.color}40`;
+      preview.style.border = `2px solid ${aura.color}60`;
+
+      document.getElementById('mi-apodo').textContent = usuario.apodo;
+      document.getElementById('mi-carrera').textContent = usuario.carrera;
+      document.getElementById('mi-score').textContent = usuario.auraScore || 0;
+
+      const badge = document.getElementById('mi-aura-badge');
+      badge.textContent = `${aura.emoji} ${aura.label}`;
+      badge.style.background = aura.bg;
+      badge.style.color = aura.color;
+      badge.style.border = `1px solid ${aura.color}40`;
+
+      const colorDot = document.getElementById('mi-color-dot');
+      colorDot.style.background = color.hex;
+      colorDot.style.boxShadow = `0 0 10px ${color.hex}80`;
+      document.getElementById('mi-color-nombre').textContent = usuario.colorAnonimo;
+    }
+
+    // ===== BURBUJAS DEMO (datos de ejemplo) =====
+    const usuariosDemo = [
+      { id: '1', apodo: 'Mau',    carrera: 'IDGS', tipoAura: 'popular',     auraScore: 340, descripcion: 'Dev de día, gamer de noche 🎮' },
+      { id: '2', apodo: 'Zoe',    carrera: 'DGD',  tipoAura: 'misteriosa',  auraScore: 280, descripcion: 'No te cuento mis secretos 🌙' },
+      { id: '3', apodo: 'Diego',  carrera: 'IRT',  tipoAura: 'caotica',     auraScore: 190, descripcion: 'El caos es mi zona de confort ⚡' },
+      { id: '4', apodo: 'Luna',   carrera: 'AE',   tipoAura: 'legendaria',  auraScore: 520, descripcion: 'Aquí pa lo que sea 🔥' },
+      { id: '5', apodo: 'Kev',    carrera: 'IDGS', tipoAura: 'inteligente', auraScore: 410, descripcion: 'README.md de mi vida: en construcción' },
+      { id: '6', apodo: 'Ari',    carrera: 'DGD',  tipoAura: 'toxica',      auraScore: 90,  descripcion: '😈' },
+      { id: '7', apodo: 'Sofía',  carrera: 'AE',   tipoAura: 'popular',     auraScore: 300, descripcion: 'Siempre con buena vibra ✨' },
+      { id: '8', apodo: usuario.apodo, carrera: usuario.carrera, tipoAura: usuario.tipoAura || 'nueva', auraScore: usuario.auraScore || 0, descripcion: 'Tú 🫧', esYo: true },
+    ];
+
+    let usuarioSeleccionado = null;
+
+    function crearBurbujas() {
+      const mapa = document.getElementById('mapa');
+      const w = mapa.clientWidth;
+      const h = mapa.clientHeight;
+
+      usuariosDemo.forEach((u, i) => {
+        const aura = AURAS[u.tipoAura] || AURAS.nueva;
+        const size = Math.max(52, Math.min(90, 52 + (u.auraScore / 15)));
+
+        const burbuja = document.createElement('div');
+        burbuja.className = `burbuja aura-${u.tipoAura}`;
+        burbuja.id = `burbuja-${u.id}`;
+        burbuja.style.width = size + 'px';
+        burbuja.style.height = size + 'px';
+
+        // Posición inicial aleatoria con margen
+        const margin = size + 10;
+        let x = margin + Math.random() * (w - margin * 2);
+        let y = margin + Math.random() * (h - margin * 2);
+        burbuja.style.left = x + 'px';
+        burbuja.style.top = y + 'px';
+
+        burbuja.innerHTML = `
+          <div class="burbuja-inner">
+            <div class="burbuja-foto">${u.apodo[0].toUpperCase()}</div>
+            <div class="burbuja-nombre">${u.apodo}</div>
+            <div class="burbuja-aura-icon">${aura.emoji}</div>
+          </div>
+        `;
+
+        burbuja.addEventListener('click', () => abrirPerfil(u));
+        mapa.appendChild(burbuja);
+
+        // Animación flotante
+        animarBurbuja(burbuja, x, y, size, w, h);
+      });
+    }
+
+    function animarBurbuja(el, startX, startY, size, maxW, maxH) {
+      let x = startX, y = startY;
+      let vx = (Math.random() - 0.5) * 0.6;
+      let vy = (Math.random() - 0.5) * 0.6;
+      const margin = size / 2;
+
+      function mover() {
+        x += vx; y += vy;
+        if (x < margin || x > maxW - margin) vx *= -1;
+        if (y < margin || y > maxH - margin) vy *= -1;
+        x = Math.max(margin, Math.min(maxW - margin, x));
+        y = Math.max(margin, Math.min(maxH - margin, y));
+        el.style.left = (x - size/2) + 'px';
+        el.style.top  = (y - size/2) + 'px';
+        requestAnimationFrame(mover);
+      }
+      requestAnimationFrame(mover);
+    }
+
+    // ===== PANEL DE PERFIL =====
+    function abrirPerfil(u) {
+      usuarioSeleccionado = u;
+      const aura = AURAS[u.tipoAura] || AURAS.nueva;
+
+      // Burbuja grande
+      const pb = document.getElementById('panel-burbuja');
+      pb.textContent = u.apodo[0].toUpperCase();
+      pb.style.background = `radial-gradient(circle at 35% 35%, ${aura.color}40, ${aura.color}10)`;
+      pb.style.boxShadow = `0 0 30px ${aura.color}50`;
+      pb.style.border = `2px solid ${aura.color}60`;
+
+      document.getElementById('panel-apodo').textContent = u.apodo;
+      document.getElementById('panel-carrera').textContent = u.carrera;
+      document.getElementById('panel-descripcion').textContent = u.descripcion || '';
+
+      const badge = document.getElementById('panel-aura-badge');
+      badge.textContent = `${aura.emoji} Aura ${aura.label}`;
+      badge.style.background = aura.bg;
+      badge.style.color = aura.color;
+      badge.style.border = `1px solid ${aura.color}40`;
+
+      document.getElementById('panel-score').textContent = u.auraScore;
+      const pct = Math.min(100, (u.auraScore / 600) * 100);
+      document.getElementById('panel-score-fill').style.width = pct + '%';
+      document.getElementById('panel-score-fill').style.background = aura.color;
+
+      // Ocultar reacciones si es el propio usuario
+      document.getElementById('reacciones-grid').style.display = u.esYo ? 'none' : 'grid';
+
+      document.getElementById('perfil-panel').classList.add('open');
+      document.getElementById('overlay').classList.add('show');
+    }
+
+    function cerrarPanel() {
+      document.getElementById('perfil-panel').classList.remove('open');
+      document.getElementById('overlay').classList.remove('show');
+      usuarioSeleccionado = null;
+    }
+
+    // ===== REACCIONES =====
+    function reaccionar(tipo) {
+      if (!usuarioSeleccionado) return;
+      // Marcar botón activo
+      document.querySelectorAll('.reaccion-btn').forEach(b => {
+        b.classList.toggle('activa', b.dataset.tipo === tipo);
+      });
+      // TODO: enviar al backend cuando esté lista la API de reacciones
+      console.log(`Reacción ${tipo} a ${usuarioSeleccionado.apodo}`);
+    }
+
+    // ===== TICKER =====
+    const mensajesDemo = [
+      { color: 'rosa',    texto: '¿por qué me ponen tanto vómito? 😭' },
+      { color: 'azul',    texto: 'alguien vio el partido anoche?' },
+      { color: 'naranja', texto: 'temporada 3 cuándo??? ya quiero reiniciar mi aura' },
+      { color: 'violeta', texto: 'el de aura legendaria de IDGS quién es 👀' },
+      { color: 'rosa',    texto: 'no fui yo jajaja 🤣' },
+      { color: 'azul',    texto: 'examen de redes mañana, mucho ánimo a todos' },
+      { color: 'naranja', texto: 'bubbly > instagram confirmado 🫧' },
+    ];
+
+    function cargarTicker() {
+      const content = document.getElementById('ticker-content');
+      // Duplicar para efecto continuo
+      const todos = [...mensajesDemo, ...mensajesDemo];
+      content.innerHTML = todos.map(m => `
+        <span class="ticker-msg">
+          <span class="ticker-color-dot tc-${m.color}"></span>
+          ${m.texto}
+          <span style="color:#1e293b;margin-left:8px;">•••</span>
+        </span>
+      `).join('');
+    }
+
+    function abrirTickerModal() {
+      document.getElementById('ticker-modal').classList.add('open');
+      document.getElementById('ticker-texto').focus();
+    }
+    function cerrarTickerModal() {
+      document.getElementById('ticker-modal').classList.remove('open');
+      document.getElementById('ticker-texto').value = '';
+      actualizarContador();
+    }
+    function actualizarContador() {
+      const texto = document.getElementById('ticker-texto').value;
+      const restantes = 140 - texto.length;
+      const el = document.getElementById('char-count');
+      el.textContent = `${restantes} caracteres restantes`;
+      el.classList.toggle('warn', restantes < 20);
+    }
+    function publicarTicker() {
+      const texto = document.getElementById('ticker-texto').value.trim();
+      if (!texto) return;
+      // TODO: enviar al backend
+      const color = usuario.colorAnonimo || 'violeta';
+      mensajesDemo.unshift({ color, texto });
+      cargarTicker();
+      cerrarTickerModal();
+    }
+
+    function verRanking() {
+      alert('🏆 Ranking próximamente!');
+    }
 
     function cerrarSesion() {
       localStorage.removeItem('bubbly_token');
       localStorage.removeItem('bubbly_usuario');
       window.location.href = 'login.html';
     }
+
+    // ===== INICIAR TODO =====
+    iniciarSidebar();
+    cargarTicker();
+    // Esperar a que el mapa tenga dimensiones
+    setTimeout(crearBurbujas, 100);
   </script>
 </body>
 </html>

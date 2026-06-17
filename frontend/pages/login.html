@@ -3,71 +3,58 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bubbly — Red Social Universitaria con Sistema de Auras">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <title>Bubbly — Entra al mapa</title>
   <link rel="stylesheet" href="../css/global.css">
   <style>
-    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-
-    .glow-blob.g1 { width: 500px; height: 500px; background: #7c3aed; top: -150px; right: -100px; }
-    .glow-blob.g2 { width: 350px; height: 350px; background: #06b6d4; bottom: -80px; left: -80px; }
-    .glow-blob.g3 { width: 200px; height: 200px; background: #ec4899; bottom: 200px; right: 200px; }
-
-    .auth-container {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 440px;
-    }
-
-    /* Logo */
-    .logo-area { text-align: center; margin-bottom: 32px; }
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 16px; }
+    .glow-blob.g1 { width: 300px; height: 300px; background: #7c3aed; top: -100px; right: -60px; }
+    .glow-blob.g2 { width: 250px; height: 250px; background: #06b6d4; bottom: -60px; left: -60px; }
+    .glow-blob.g3 { width: 150px; height: 150px; background: #ec4899; bottom: 150px; right: 100px; }
+    .auth-container { position: relative; z-index: 1; width: 100%; max-width: 420px; }
+    .logo-area { text-align: center; margin-bottom: 24px; }
     .logo-bubbles { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; }
     .b { border-radius: 50%; }
-    .b-main { width: 28px; height: 28px; background: linear-gradient(135deg, #7c3aed, #06b6d4); }
-    .b-sm1 { width: 14px; height: 14px; background: linear-gradient(135deg, #ec4899, #8b5cf6); opacity: 0.9; }
-    .b-sm2 { width: 10px; height: 10px; background: #fbbf24; opacity: 0.8; }
+    .b-main { width: 24px; height: 24px; background: linear-gradient(135deg, #7c3aed, #06b6d4); }
+    .b-sm1 { width: 12px; height: 12px; background: linear-gradient(135deg, #ec4899, #8b5cf6); opacity: 0.9; }
+    .b-sm2 { width: 9px; height: 9px; background: #fbbf24; opacity: 0.8; }
     .logo-name {
-      font-family: 'Syne', sans-serif; font-size: 42px; font-weight: 800;
+      font-family: 'Syne', sans-serif; font-size: clamp(32px, 8vw, 42px); font-weight: 800;
       background: linear-gradient(135deg, #e2e8f0 0%, #a78bfa 50%, #38bdf8 100%);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-      letter-spacing: -1px;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -1px;
     }
-    .logo-sub { font-size: 12px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
-
-    /* Tabs */
-    .tabs { display: flex; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 24px; }
-    .tab {
-      flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600;
-      border-radius: 9px; cursor: pointer; transition: all 0.2s; color: var(--text-muted); border: none; background: none;
-    }
+    .logo-sub { font-size: clamp(10px, 2.5vw, 12px); color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+    .card { padding: clamp(16px, 5vw, 28px); }
+    .tabs { display: flex; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin-bottom: 20px; }
+    .tab { flex: 1; padding: 9px 8px; text-align: center; font-size: clamp(12px, 3vw, 14px); font-weight: 600; border-radius: 9px; cursor: pointer; transition: all 0.2s; color: var(--text-muted); border: none; background: none; }
     .tab.active { background: var(--primary); color: white; box-shadow: 0 0 15px rgba(124,58,237,0.4); }
-
-    /* Forms */
-    .form-panel { display: none; flex-direction: column; gap: 16px; }
+    .form-panel { display: none; flex-direction: column; gap: 14px; }
     .form-panel.active { display: flex; }
-
-    /* Avatar / Color selector */
-    .selector-grid { display: flex; gap: 10px; flex-wrap: wrap; }
-    .selector-item {
-      flex: 1; min-width: 70px; padding: 10px 6px; border-radius: 10px;
-      border: 2px solid var(--border); cursor: pointer; text-align: center;
-      transition: all 0.2s; font-size: 22px; background: rgba(255,255,255,0.02);
-    }
-    .selector-item:hover { border-color: var(--primary-light); }
-    .selector-item.selected { border-color: var(--primary); background: rgba(124,58,237,0.15); box-shadow: 0 0 12px rgba(124,58,237,0.3); }
-    .selector-item .label { font-size: 10px; color: var(--text-muted); margin-top: 4px; font-family: 'Space Grotesk', sans-serif; }
-
-    .color-dot { width: 28px; height: 28px; border-radius: 50%; margin: 0 auto 4px; }
-    .color-violeta .color-dot { background: #8B5CF6; box-shadow: 0 0 10px rgba(139,92,246,0.6); }
-    .color-azul .color-dot { background: #38BDF8; box-shadow: 0 0 10px rgba(56,189,248,0.6); }
-    .color-rosa .color-dot { background: #F472B6; box-shadow: 0 0 10px rgba(244,114,182,0.6); }
-    .color-naranja .color-dot { background: #FB923C; box-shadow: 0 0 10px rgba(251,146,60,0.6); }
-
-    .divider { display: flex; align-items: center; gap: 12px; }
+    .color-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .color-item { padding: clamp(8px, 3vw, 14px) 4px; border-radius: 12px; border: 2px solid var(--border); cursor: pointer; text-align: center; transition: all 0.2s; background: rgba(255,255,255,0.02); -webkit-tap-highlight-color: transparent; }
+    .color-item:hover, .color-item:focus { transform: translateY(-2px); outline: none; }
+    .color-dot { width: clamp(24px, 6vw, 32px); height: clamp(24px, 6vw, 32px); border-radius: 50%; margin: 0 auto 6px; }
+    .color-label { font-size: clamp(9px, 2.5vw, 11px); color: var(--text-muted); font-family: 'Space Grotesk', sans-serif; }
+    .color-violeta .color-dot  { background: #8B5CF6; box-shadow: 0 0 12px rgba(139,92,246,0.7); }
+    .color-violeta.selected    { border-color: #8B5CF6; background: rgba(139,92,246,0.1); }
+    .color-azul .color-dot     { background: #38BDF8; box-shadow: 0 0 12px rgba(56,189,248,0.7); }
+    .color-azul.selected       { border-color: #38BDF8; background: rgba(56,189,248,0.1); }
+    .color-rosa .color-dot     { background: #F472B6; box-shadow: 0 0 12px rgba(244,114,182,0.7); }
+    .color-rosa.selected       { border-color: #F472B6; background: rgba(244,114,182,0.1); }
+    .color-naranja .color-dot  { background: #FB923C; box-shadow: 0 0 12px rgba(251,146,60,0.7); }
+    .color-naranja.selected    { border-color: #FB923C; background: rgba(251,146,60,0.1); }
+    .divider { display: flex; align-items: center; gap: 10px; }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .divider span { font-size: 12px; color: var(--text-muted); }
-
-    .link-btn { background: none; border: none; color: var(--primary-light); cursor: pointer; font-size: 13px; text-decoration: underline; }
-
-    .card { padding: 28px; }
+    .divider span { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    .anon-hint { font-size: clamp(11px, 2.8vw, 12px); color: var(--text-muted); text-align: center; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; }
+    @media (min-width: 768px) {
+      .glow-blob.g1 { width: 500px; height: 500px; top: -150px; right: -100px; }
+      .glow-blob.g2 { width: 350px; height: 350px; bottom: -80px; left: -80px; }
+      .glow-blob.g3 { width: 200px; height: 200px; }
+      body { padding: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -77,38 +64,30 @@
   <div class="glow-blob g3"></div>
 
   <div class="auth-container">
-    <!-- Logo -->
     <div class="logo-area">
       <div class="logo-bubbles">
-        <div class="b b-sm2"></div>
-        <div class="b b-main"></div>
-        <div class="b b-sm1"></div>
+        <div class="b b-sm2"></div><div class="b b-main"></div><div class="b b-sm1"></div>
       </div>
       <div class="logo-name">Bubbly</div>
       <div class="logo-sub">Red Social Universitaria · Sistema de Auras</div>
     </div>
 
     <div class="card">
-      <!-- Tabs -->
       <div class="tabs">
         <button class="tab active" onclick="cambiarTab('login')">Entrar</button>
         <button class="tab" onclick="cambiarTab('registro')">Registrarse</button>
       </div>
+      <div class="alert" id="alerta" role="alert"></div>
 
-      <!-- Alerta global -->
-      <div class="alert" id="alerta"></div>
-
-      <!-- ===== FORM LOGIN ===== -->
+      <!-- LOGIN -->
       <div class="form-panel active" id="panel-login">
         <div class="form-group">
-          <label class="form-label">Correo universitario</label>
-          <input class="input" type="email" id="login-email" placeholder="tucorreo@universidad.edu.mx" autocomplete="email">
-          <span class="form-error" id="err-login-email"></span>
+          <label class="form-label" for="login-email">Correo universitario</label>
+          <input class="input" type="email" id="login-email" placeholder="tucorreo@universidad.edu.mx" autocomplete="email" maxlength="100" inputmode="email">
         </div>
         <div class="form-group">
-          <label class="form-label">Contraseña</label>
-          <input class="input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
-          <span class="form-error" id="err-login-password"></span>
+          <label class="form-label" for="login-password">Contraseña</label>
+          <input class="input" type="password" id="login-password" placeholder="••••••••" autocomplete="current-password" maxlength="100">
         </div>
         <button class="btn btn-primary btn-full" id="btn-login" onclick="handleLogin()">
           <span class="spinner" id="spin-login"></span>
@@ -116,22 +95,22 @@
         </button>
       </div>
 
-      <!-- ===== FORM REGISTRO ===== -->
+      <!-- REGISTRO -->
       <div class="form-panel" id="panel-registro">
         <div class="form-group">
-          <label class="form-label">Correo universitario</label>
-          <input class="input" type="email" id="reg-email" placeholder="tucorreo@universidad.edu.mx">
+          <label class="form-label" for="reg-email">Correo universitario</label>
+          <input class="input" type="email" id="reg-email" placeholder="tucorreo@universidad.edu.mx" maxlength="100" inputmode="email">
         </div>
         <div class="form-group">
-          <label class="form-label">Contraseña</label>
-          <input class="input" type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+          <label class="form-label" for="reg-password">Contraseña</label>
+          <input class="input" type="password" id="reg-password" placeholder="Mínimo 6 caracteres" maxlength="100">
         </div>
         <div class="form-group">
-          <label class="form-label">Apodo o nombre</label>
-          <input class="input" type="text" id="reg-apodo" placeholder="¿Cómo te conocen?" maxlength="30">
+          <label class="form-label" for="reg-apodo">Apodo</label>
+          <input class="input" type="text" id="reg-apodo" placeholder="¿Cómo te conocen?" maxlength="30" autocomplete="nickname">
         </div>
         <div class="form-group">
-          <label class="form-label">Carrera</label>
+          <label class="form-label" for="reg-carrera">Carrera</label>
           <select class="input" id="reg-carrera">
             <option value="">Selecciona tu carrera...</option>
             <option value="Ingeniería en Desarrollo de Software">Ingeniería en Desarrollo de Software</option>
@@ -144,34 +123,21 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label">Descripción breve <span style="color:var(--text-muted)">(opcional)</span></label>
+          <label class="form-label" for="reg-descripcion">Descripción <span style="color:var(--text-muted)">(opcional)</span></label>
           <input class="input" type="text" id="reg-descripcion" placeholder="Cuéntanos algo de ti..." maxlength="150">
         </div>
-
-        <div class="divider"><span>Elige tu identidad anónima</span></div>
-
+        <div class="divider"><span>Tu identidad anónima</span></div>
+        <div class="anon-hint">🎭 En el ticker solo se verá tu color — nadie sabrá quién eres</div>
         <div class="form-group">
-          <label class="form-label">Tu avatar en el ticker</label>
-          <div class="selector-grid" id="avatar-selector">
-            <div class="selector-item" data-val="gato" onclick="seleccionar('avatar','gato',this)">🐱<div class="label">Gato</div></div>
-            <div class="selector-item" data-val="zorro" onclick="seleccionar('avatar','zorro',this)">🦊<div class="label">Zorro</div></div>
-            <div class="selector-item" data-val="pulpo" onclick="seleccionar('avatar','pulpo',this)">🐙<div class="label">Pulpo</div></div>
-            <div class="selector-item" data-val="oso" onclick="seleccionar('avatar','oso',this)">🐻<div class="label">Oso</div></div>
-          </div>
-          <span class="form-error" id="err-avatar"></span>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Tu color anónimo</label>
-          <div class="selector-grid" id="color-selector">
-            <div class="selector-item color-violeta" data-val="violeta" onclick="seleccionar('color','violeta',this)"><div class="color-dot"></div><div class="label">Violeta</div></div>
-            <div class="selector-item color-azul" data-val="azul" onclick="seleccionar('color','azul',this)"><div class="color-dot"></div><div class="label">Azul</div></div>
-            <div class="selector-item color-rosa" data-val="rosa" onclick="seleccionar('color','rosa',this)"><div class="color-dot"></div><div class="label">Rosa</div></div>
-            <div class="selector-item color-naranja" data-val="naranja" onclick="seleccionar('color','naranja',this)"><div class="color-dot"></div><div class="label">Naranja</div></div>
+          <label class="form-label">Elige tu color</label>
+          <div class="color-grid" id="color-selector" role="radiogroup" aria-label="Color anónimo">
+            <div class="color-item color-violeta" data-val="violeta" onclick="seleccionarColor('violeta',this)" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')seleccionarColor('violeta',this)"><div class="color-dot"></div><div class="color-label">Violeta</div></div>
+            <div class="color-item color-azul" data-val="azul" onclick="seleccionarColor('azul',this)" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')seleccionarColor('azul',this)"><div class="color-dot"></div><div class="color-label">Azul</div></div>
+            <div class="color-item color-rosa" data-val="rosa" onclick="seleccionarColor('rosa',this)" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')seleccionarColor('rosa',this)"><div class="color-dot"></div><div class="color-label">Rosa</div></div>
+            <div class="color-item color-naranja" data-val="naranja" onclick="seleccionarColor('naranja',this)" role="radio" aria-checked="false" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')seleccionarColor('naranja',this)"><div class="color-dot"></div><div class="color-label">Naranja</div></div>
           </div>
           <span class="form-error" id="err-color"></span>
         </div>
-
         <button class="btn btn-primary btn-full" id="btn-registro" onclick="handleRegistro()">
           <span class="spinner" id="spin-registro"></span>
           <span id="txt-registro">Crear cuenta 🫧</span>
@@ -181,144 +147,91 @@
   </div>
 
   <script>
-    const API = 'http://localhost:3000/api';
-    let avatarSeleccionado = null;
+    const API = 'http://localhost:3001/api';
     let colorSeleccionado = null;
+    const COLORES_VALIDOS = ['violeta', 'azul', 'rosa', 'naranja'];
+    const sanitizar = (str) => String(str).trim().replace(/[<>"'`]/g, '').substring(0, 500);
+    const esEmailValido = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 100;
 
-    // ===== TABS =====
     function cambiarTab(tab) {
-      document.querySelectorAll('.tab').forEach((t, i) => {
-        t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'registro' && i === 1));
-      });
+      document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'registro' && i === 1)));
       document.getElementById('panel-login').classList.toggle('active', tab === 'login');
       document.getElementById('panel-registro').classList.toggle('active', tab === 'registro');
       ocultarAlerta();
     }
 
-    // ===== SELECTOR AVATAR / COLOR =====
-    function seleccionar(tipo, valor, el) {
-      const containerId = tipo === 'avatar' ? 'avatar-selector' : 'color-selector';
-      document.querySelectorAll(`#${containerId} .selector-item`).forEach(i => i.classList.remove('selected'));
-      el.classList.add('selected');
-      if (tipo === 'avatar') avatarSeleccionado = valor;
-      else colorSeleccionado = valor;
+    function seleccionarColor(valor, el) {
+      if (!COLORES_VALIDOS.includes(valor)) return;
+      document.querySelectorAll('#color-selector .color-item').forEach(i => { i.classList.remove('selected'); i.setAttribute('aria-checked','false'); });
+      el.classList.add('selected'); el.setAttribute('aria-checked','true');
+      colorSeleccionado = valor;
+      document.getElementById('err-color').classList.remove('show');
     }
 
-    // ===== ALERTAS =====
     function mostrarAlerta(msg, tipo = 'error') {
       const el = document.getElementById('alerta');
-      el.textContent = msg;
+      el.textContent = String(msg).substring(0, 200);
       el.className = `alert alert-${tipo} show`;
     }
-    function ocultarAlerta() {
-      document.getElementById('alerta').className = 'alert';
-    }
+    function ocultarAlerta() { document.getElementById('alerta').className = 'alert'; }
 
-    // ===== LOADING =====
     function setLoading(btn, spin, txt, loading) {
       document.getElementById(btn).disabled = loading;
       document.getElementById(spin).classList.toggle('show', loading);
       document.getElementById(txt).style.display = loading ? 'none' : 'inline';
     }
 
-    // ===== LOGIN =====
     async function handleLogin() {
       ocultarAlerta();
-      const email = document.getElementById('login-email').value.trim();
-      const password = document.getElementById('login-password').value;
-
-      if (!email || !password) {
-        mostrarAlerta('Por favor llena todos los campos');
-        return;
-      }
-
-      setLoading('btn-login', 'spin-login', 'txt-login', true);
-
+      const email = sanitizar(document.getElementById('login-email').value);
+      const password = document.getElementById('login-password').value.trim();
+      if (!email || !password) { mostrarAlerta('Por favor llena todos los campos'); return; }
+      if (!esEmailValido(email)) { mostrarAlerta('Formato de correo inválido'); return; }
+      if (password.length < 6) { mostrarAlerta('La contraseña debe tener mínimo 6 caracteres'); return; }
+      setLoading('btn-login','spin-login','txt-login', true);
       try {
-        const res = await fetch(`${API}/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password })
-        });
+        const res = await fetch(`${API}/auth/login`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password }) });
         const data = await res.json();
-
         if (data.ok) {
           localStorage.setItem('bubbly_token', data.token);
           localStorage.setItem('bubbly_usuario', JSON.stringify(data.usuario));
-          mostrarAlerta(`¡Hola ${data.usuario.apodo}! Entrando al mapa... 🫧`, 'success');
+          mostrarAlerta(`¡Hola ${sanitizar(data.usuario.apodo)}! Entrando al mapa... 🫧`, 'success');
           setTimeout(() => window.location.href = 'mapa.html', 1200);
-        } else {
-          mostrarAlerta(data.mensaje || 'Error al iniciar sesión');
-        }
-      } catch (e) {
-        mostrarAlerta('No se pudo conectar con el servidor');
-      } finally {
-        setLoading('btn-login', 'spin-login', 'txt-login', false);
-      }
+        } else { mostrarAlerta(data.mensaje || 'Error al iniciar sesión'); }
+      } catch (e) { mostrarAlerta('No se pudo conectar con el servidor.'); }
+      finally { setLoading('btn-login','spin-login','txt-login', false); }
     }
 
-    // ===== REGISTRO =====
     async function handleRegistro() {
       ocultarAlerta();
-
-      const email = document.getElementById('reg-email').value.trim();
-      const password = document.getElementById('reg-password').value;
-      const apodo = document.getElementById('reg-apodo').value.trim();
-      const carrera = document.getElementById('reg-carrera').value;
-      const descripcion = document.getElementById('reg-descripcion').value.trim();
-
-      // Validaciones
-      if (!email || !password || !apodo || !carrera) {
-        mostrarAlerta('Llena todos los campos obligatorios');
-        return;
-      }
-      if (password.length < 6) {
-        mostrarAlerta('La contraseña debe tener mínimo 6 caracteres');
-        return;
-      }
-      if (!avatarSeleccionado) {
-        mostrarAlerta('Elige tu avatar anónimo');
-        document.getElementById('err-avatar').textContent = 'Selecciona un avatar';
-        document.getElementById('err-avatar').classList.add('show');
-        return;
-      }
-      if (!colorSeleccionado) {
+      const email = sanitizar(document.getElementById('reg-email').value);
+      const password = document.getElementById('reg-password').value.trim();
+      const apodo = sanitizar(document.getElementById('reg-apodo').value);
+      const carrera = sanitizar(document.getElementById('reg-carrera').value);
+      const descripcion = sanitizar(document.getElementById('reg-descripcion').value);
+      if (!email || !password || !apodo || !carrera) { mostrarAlerta('Llena todos los campos obligatorios'); return; }
+      if (!esEmailValido(email)) { mostrarAlerta('Formato de correo inválido'); return; }
+      if (password.length < 6) { mostrarAlerta('La contraseña debe tener mínimo 6 caracteres'); return; }
+      if (apodo.length < 2) { mostrarAlerta('El apodo debe tener al menos 2 caracteres'); return; }
+      if (!colorSeleccionado || !COLORES_VALIDOS.includes(colorSeleccionado)) {
         mostrarAlerta('Elige tu color anónimo');
         document.getElementById('err-color').textContent = 'Selecciona un color';
-        document.getElementById('err-color').classList.add('show');
-        return;
+        document.getElementById('err-color').classList.add('show'); return;
       }
-
-      setLoading('btn-registro', 'spin-registro', 'txt-registro', true);
-
+      setLoading('btn-registro','spin-registro','txt-registro', true);
       try {
-        const res = await fetch(`${API}/auth/registro`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email, password, apodo, carrera, descripcion,
-            avatarAnonimo: avatarSeleccionado,
-            colorAnonimo: colorSeleccionado
-          })
-        });
+        const res = await fetch(`${API}/auth/registro`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password, apodo, carrera, descripcion, colorAnonimo: colorSeleccionado }) });
         const data = await res.json();
-
         if (data.ok) {
           localStorage.setItem('bubbly_token', data.token);
           localStorage.setItem('bubbly_usuario', JSON.stringify(data.usuario));
-          mostrarAlerta(`¡Bienvenido a Bubbly, ${data.usuario.apodo}! 🫧`, 'success');
+          mostrarAlerta(`¡Bienvenido a Bubbly, ${sanitizar(data.usuario.apodo)}! 🫧`, 'success');
           setTimeout(() => window.location.href = 'mapa.html', 1200);
-        } else {
-          mostrarAlerta(data.mensaje || 'Error al registrarse');
-        }
-      } catch (e) {
-        mostrarAlerta('No se pudo conectar con el servidor');
-      } finally {
-        setLoading('btn-registro', 'spin-registro', 'txt-registro', false);
-      }
+        } else { mostrarAlerta(data.mensaje || 'Error al registrarse'); }
+      } catch (e) { mostrarAlerta('No se pudo conectar con el servidor.'); }
+      finally { setLoading('btn-registro','spin-registro','txt-registro', false); }
     }
 
-    // Enter para submit
     document.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         if (document.getElementById('panel-login').classList.contains('active')) handleLogin();
@@ -326,10 +239,7 @@
       }
     });
 
-    // Si ya hay sesión, redirigir
-    if (localStorage.getItem('bubbly_token')) {
-      window.location.href = 'mapa.html';
-    }
+    if (localStorage.getItem('bubbly_token')) window.location.href = 'mapa.html';
   </script>
 </body>
 </html>

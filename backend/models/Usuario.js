@@ -9,6 +9,7 @@ const usuarioSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
+    maxlength: [100, 'Correo demasiado largo'],
     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Formato de correo inválido']
   },
   password: {
@@ -23,12 +24,14 @@ const usuarioSchema = new mongoose.Schema({
     type: String,
     required: [true, 'El apodo es obligatorio'],
     trim: true,
+    minlength: [2, 'Mínimo 2 caracteres'],
     maxlength: [30, 'Máximo 30 caracteres']
   },
   carrera: {
     type: String,
     required: [true, 'La carrera es obligatoria'],
-    trim: true
+    trim: true,
+    maxlength: [100, 'Máximo 100 caracteres']
   },
   descripcion: {
     type: String,
@@ -37,25 +40,24 @@ const usuarioSchema = new mongoose.Schema({
   },
   foto: {
     type: String,
-    default: '' // URL de la foto de perfil
+    default: ''
   },
 
-  // Identidad anónima en ticker/reacciones
-  avatarAnonimo: {
-    type: String,
-    enum: ['gato', 'zorro', 'pulpo', 'oso'],
-    required: true
-  },
+  // Identidad anónima — SOLO COLOR (sin avatar)
   colorAnonimo: {
     type: String,
-    enum: ['violeta', 'azul', 'rosa', 'naranja'],
-    required: true
+    enum: {
+      values: ['violeta', 'azul', 'rosa', 'naranja'],
+      message: 'Color inválido'
+    },
+    required: [true, 'El color anónimo es obligatorio']
   },
 
   // Sistema de Auras
   auraScore: {
     type: Number,
-    default: 0
+    default: 0,
+    min: 0
   },
   tipoAura: {
     type: String,
@@ -63,7 +65,13 @@ const usuarioSchema = new mongoose.Schema({
     default: 'nueva'
   },
 
-  // Metadata
+  // Temporada actual
+  temporadaActual: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Temporada',
+    default: null
+  },
+
   activo: {
     type: Boolean,
     default: true
@@ -77,11 +85,11 @@ const usuarioSchema = new mongoose.Schema({
 // Hash password antes de guardar
 usuarioSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
+  this.password = await bcrypt.hash(this.password, 12); // 12 saltos = más seguro
   next();
 });
 
-// Método para comparar contraseñas
+// Comparar contraseñas
 usuarioSchema.methods.compararPassword = async function (passwordIngresada) {
   return await bcrypt.compare(passwordIngresada, this.password);
 };

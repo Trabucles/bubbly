@@ -1,6 +1,28 @@
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/Usuario');
 
+// ===== UTILIDADES DE SEGURIDAD =====
+
+// Sanitizar strings — elimina caracteres peligrosos para XSS
+const sanitizar = (str) => {
+  if (typeof str !== 'string') return '';
+  return str
+    .trim()
+    .replace(/[<>\"'`]/g, '')  // quita caracteres XSS
+    .substring(0, 500);         // limita longitud máxima
+};
+
+// Validar email
+const esEmailValido = (email) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email) && email.length <= 100;
+};
+
+// Validar que el valor esté en lista permitida (whitelist)
+const esValorPermitido = (valor, lista) => lista.includes(valor);
+
+const COLORES_VALIDOS = ['violeta', 'azul', 'rosa', 'naranja'];
+
 // Generar token JWT
 const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -8,17 +30,35 @@ const generarToken = (id) => {
   });
 };
 
-// POST /api/auth/registro
+// ===== POST /api/auth/registro =====
 const registro = async (req, res) => {
   try {
-    const { email, password, apodo, carrera, descripcion, avatarAnonimo, colorAnonimo } = req.body;
+    // Sanitizar todos los inputs
+    const email = sanitizar(req.body.email || '').toLowerCase();
+    const password = (req.body.password || '').trim();
+    const apodo = sanitizar(req.body.apodo || '');
+    const carrera = sanitizar(req.body.carrera || '');
+    const descripcion = sanitizar(req.body.descripcion || '');
+    const colorAnonimo = sanitizar(req.body.colorAnonimo || '');
 
-    // Validar campos requeridos
-    if (!email || !password || !apodo || !carrera || !avatarAnonimo || !colorAnonimo) {
+    // Validaciones
+    if (!email || !password || !apodo || !carrera || !colorAnonimo) {
       return res.status(400).json({ ok: false, mensaje: 'Todos los campos son obligatorios' });
     }
+    if (!esEmailValido(email)) {
+      return res.status(400).json({ ok: false, mensaje: 'Formato de correo inválido' });
+    }
+    if (password.length < 6 || password.length > 100) {
+      return res.status(400).json({ ok: false, mensaje: 'La contraseña debe tener entre 6 y 100 caracteres' });
+    }
+    if (apodo.length < 2 || apodo.length > 30) {
+      return res.status(400).json({ ok: false, mensaje: 'El apodo debe tener entre 2 y 30 caracteres' });
+    }
+    if (!esValorPermitido(colorAnonimo, COLORES_VALIDOS)) {
+      return res.status(400).json({ ok: false, mensaje: 'Color anónimo inválido' });
+    }
 
-    // Verificar si el email ya existe
+    // Verificar si ya existe
     const existente = await Usuario.findOne({ email });
     if (existente) {
       return res.status(400).json({ ok: false, mensaje: 'Este correo ya está registrado' });
@@ -26,12 +66,8 @@ const registro = async (req, res) => {
 
     // Crear usuario
     const usuario = await Usuario.create({
-      email,
-      password,
-      apodo,
-      carrera,
-      descripcion: descripcion || '',
-      avatarAnonimo,
+      email, password, apodo, carrera,
+      descripcion: descripcion.substring(0, 150),
       colorAnonimo
     });
 
@@ -46,33 +82,36 @@ const registro = async (req, res) => {
         apodo: usuario.apodo,
         carrera: usuario.carrera,
         tipoAura: usuario.tipoAura,
-        avatarAnonimo: usuario.avatarAnonimo,
         colorAnonimo: usuario.colorAnonimo
       }
     });
 
   } catch (error) {
     console.error('Error en registro:', error);
-    res.status(500).json({ ok: false, mensaje: 'Error del servidor', error: error.message });
+    res.status(500).json({ ok: false, mensaje: 'Error del servidor' });
   }
 };
 
-// POST /api/auth/login
+// ===== POST /api/auth/login =====
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const email = sanitizar(req.body.email || '').toLowerCase();
+    const password = (req.body.password || '').trim();
 
     if (!email || !password) {
       return res.status(400).json({ ok: false, mensaje: 'Correo y contraseña son requeridos' });
     }
+    if (!esEmailValido(email)) {
+      return res.status(400).json({ ok: false, mensaje: 'Formato de correo inválido' });
+    }
 
-    // Buscar usuario (incluir password que está oculto por select:false)
+    // Buscar usuario con password
     const usuario = await Usuario.findOne({ email }).select('+password');
     if (!usuario) {
+      // Mensaje genérico para no revelar si el email existe
       return res.status(401).json({ ok: false, mensaje: 'Correo o contraseña incorrectos' });
     }
 
-    // Verificar contraseña
     const passwordCorrecta = await usuario.compararPassword(password);
     if (!passwordCorrecta) {
       return res.status(401).json({ ok: false, mensaje: 'Correo o contraseña incorrectos' });
@@ -90,7 +129,6 @@ const login = async (req, res) => {
         carrera: usuario.carrera,
         tipoAura: usuario.tipoAura,
         auraScore: usuario.auraScore,
-        avatarAnonimo: usuario.avatarAnonimo,
         colorAnonimo: usuario.colorAnonimo,
         foto: usuario.foto
       }
@@ -102,7 +140,7 @@ const login = async (req, res) => {
   }
 };
 
-// GET /api/auth/yo  (ruta protegida - obtener usuario actual)
+// ===== GET /api/auth/yo (ruta protegida) =====
 const obtenerYo = async (req, res) => {
   res.json({
     ok: true,
@@ -114,7 +152,6 @@ const obtenerYo = async (req, res) => {
       foto: req.usuario.foto,
       tipoAura: req.usuario.tipoAura,
       auraScore: req.usuario.auraScore,
-      avatarAnonimo: req.usuario.avatarAnonimo,
       colorAnonimo: req.usuario.colorAnonimo
     }
   });
