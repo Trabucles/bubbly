@@ -7,10 +7,8 @@ const connectDB = require('./config/db');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ===== CONECTAR MONGODB =====
 connectDB();
 
-// ===== SEGURIDAD: CORS =====
 const corsOptions = {
   origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -19,56 +17,40 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// ===== SEGURIDAD: HEADERS HTTP =====
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com; img-src 'self' data:;");
+  // ✅ Agregado res.cloudinary.com para permitir cargar fotos
+  res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com res.cloudinary.com; img-src 'self' data: res.cloudinary.com;");
   next();
 });
 
-// ===== SEGURIDAD: RATE LIMITING MANUAL =====
 const requestCounts = new Map();
-const RATE_LIMIT = 20;      // máx requests
-const RATE_WINDOW = 60000;  // por minuto
-
-app.use('/api/auth', (req, res, next) => {
+app.use('/api/', (req, res, next) => {
   const ip = req.ip || req.connection.remoteAddress;
   const now = Date.now();
   const entry = requestCounts.get(ip) || { count: 0, start: now };
-
-  if (now - entry.start > RATE_WINDOW) {
-    entry.count = 1;
-    entry.start = now;
-  } else {
-    entry.count++;
-  }
-
+  if (now - entry.start > 60000) { entry.count = 1; entry.start = now; }
+  else entry.count++;
   requestCounts.set(ip, entry);
-
-  if (entry.count > RATE_LIMIT) {
-    return res.status(429).json({
-      ok: false,
-      mensaje: 'Demasiadas solicitudes. Espera un momento antes de intentar de nuevo.'
-    });
-  }
+  if (entry.count > 30) return res.status(429).json({ ok: false, mensaje: 'Demasiadas solicitudes.' });
   next();
 });
 
-// ===== MIDDLEWARES =====
-app.use(express.json({ limit: '1mb' }));
-app.use(express.urlencoded({ extended: true, limit: '1mb' }));
-
-// ===== ARCHIVOS ESTÁTICOS =====
+// ✅ Subido a 2mb para permitir subida de fotos
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// ===== RUTAS API =====
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/ticker', require('./routes/ticker'));
+app.use('/api/usuarios', require('./routes/usuarios'));
+app.use('/api/reacciones', require('./routes/reacciones'));
+// ✅ Nueva ruta de perfil (fotos, apodo, descripción)
+app.use('/api/perfil', require('./routes/perfil'));
 
-// ===== FALLBACK =====
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
 });

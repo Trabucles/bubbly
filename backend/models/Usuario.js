@@ -16,7 +16,7 @@ const usuarioSchema = new mongoose.Schema({
     type: String,
     required: [true, 'La contraseña es obligatoria'],
     minlength: [6, 'Mínimo 6 caracteres'],
-    select: false // nunca se devuelve en queries
+    select: false
   },
 
   // Perfil público
@@ -38,12 +38,18 @@ const usuarioSchema = new mongoose.Schema({
     default: '',
     maxlength: [150, 'Máximo 150 caracteres']
   },
-  foto: {
-    type: String,
-    default: ''
+
+  // Fotos: la primera es la foto de perfil, máximo 3
+  fotos: {
+    type: [String],
+    default: [],
+    validate: {
+      validator: (arr) => arr.length <= 3,
+      message: 'Máximo 3 fotos por perfil'
+    }
   },
 
-  // Identidad anónima — SOLO COLOR (sin avatar)
+  // Identidad anónima — SOLO COLOR
   colorAnonimo: {
     type: String,
     enum: {
@@ -85,7 +91,7 @@ const usuarioSchema = new mongoose.Schema({
 // Hash password antes de guardar
 usuarioSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 12); // 12 saltos = más seguro
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
