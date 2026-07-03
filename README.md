@@ -35,7 +35,7 @@ npm start
 
 ### 5. Abrir en el navegador
 ```
-http://localhost:3000/pages/login.html
+http://localhost:3001/pages/login.html
 ```
 
 ---

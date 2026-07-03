@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <title>Bubbly — Mi Perfil</title>
+  <link rel="stylesheet" href="../css/global.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #080812; color: #e2e8f0; font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+
+    .navbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: rgba(8,8,18,0.9); border-bottom: 1px solid rgba(255,255,255,0.07); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+    .nav-logo { font-family: 'Syne', sans-serif; font-size: clamp(20px, 4vw, 26px); font-weight: 800; background: linear-gradient(135deg, #e2e8f0, #a78bfa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .nav-back { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 7px 12px; color: #94a3b8; cursor: pointer; font-size: 12px; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+    .nav-back:hover { background: rgba(124,58,237,0.15); border-color: #7c3aed; color: #a78bfa; }
+
+    .container { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 20px; }
+
+    /* Burbuja de perfil */
+    .perfil-header { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; text-align: center; }
+    .burbuja-grande { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; color: white; position: relative; cursor: pointer; }
+    .burbuja-grande img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .burbuja-edit-hint { position: absolute; bottom: 0; right: 0; width: 26px; height: 26px; border-radius: 50%; background: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 12px; border: 2px solid #080812; }
+    .perfil-apodo { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; }
+    .perfil-carrera { font-size: 13px; color: #64748b; }
+    .aura-badge-grande { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+    /* Sección card */
+    .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 20px; }
+    .card-title { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+
+    /* Fotos */
+    .fotos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .foto-slot { aspect-ratio: 1; border-radius: 12px; overflow: hidden; position: relative; background: rgba(255,255,255,0.04); border: 1.5px dashed rgba(255,255,255,0.12); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .foto-slot:hover { border-color: #a78bfa; background: rgba(124,58,237,0.08); }
+    .foto-slot img { width: 100%; height: 100%; object-fit: cover; }
+    .foto-slot .add-icon { font-size: 24px; color: #475569; }
+    .foto-slot .foto-badge { position: absolute; top: 6px; left: 6px; background: #7c3aed; color: white; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+    .foto-slot .foto-delete { position: absolute; top: 6px; right: 6px; background: rgba(239,68,68,0.9); color: white; font-size: 13px; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 1; transition: all 0.2s; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.4); z-index: 5; }
+    .foto-slot .foto-delete:hover { background: rgba(239,68,68,1); transform: scale(1.1); }
+    .fotos-hint { font-size: 11px; color: #475569; margin-top: 10px; }
+    input[type="file"] { display: none; }
+
+    /* Editar perfil */
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #94a3b8; }
+    .form-sublabel { font-size: 11px; color: #475569; }
+
+    /* Color anónimo */
+    .color-lock-row { display: flex; align-items: center; gap: 12px; padding: 12px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.06); }
+    .color-lock-dot { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .color-lock-info { flex: 1; }
+    .color-lock-info p { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .color-lock-info span { font-size: 11px; color: #475569; }
+    .btn-revelar-color { background: none; border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #64748b; cursor: pointer; font-size: 11px; padding: 4px 10px; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s; flex-shrink: 0; }
+    .btn-revelar-color:hover { border-color: #a78bfa; color: #a78bfa; }
+
+    /* Estadísticas de reacciones */
+    .reacciones-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .stat-emoji-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .stat-emoji { font-size: 26px; margin-bottom: 6px; }
+    .stat-nombre { font-size: 10px; color: #64748b; margin-bottom: 4px; }
+    .stat-count { font-size: 20px; font-weight: 700; }
+
+    /* Historial de quién reaccionó */
+    .reacciones-lista { display: flex; flex-direction: column; gap: 8px; }
+    .reaccion-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+    .reaccion-color-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .reaccion-texto { font-size: 13px; color: #94a3b8; flex: 1; }
+    .reaccion-emoji-big { font-size: 20px; }
+    .reacciones-vacio { font-size: 13px; color: #475569; text-align: center; padding: 20px; }
+
+    .tc-violeta { background: #8B5CF6; }
+    .tc-azul    { background: #38BDF8; }
+    .tc-rosa    { background: #F472B6; }
+    .tc-naranja { background: #FB923C; }
+
+    .alert { padding: 10px 14px; border-radius: 8px; font-size: 13px; display: none; margin-bottom: 4px; }
+    .alert.show { display: block; }
+    .alert-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .alert-success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #86efac; }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="nav-logo">Bubbly 🫧</div>
+    <a href="mapa.html" class="nav-back">← Volver al mapa</a>
+  </nav>
+
+  <div class="container">
+
+    <!-- HEADER DE PERFIL -->
+    <div class="perfil-header">
+      <div class="burbuja-grande" id="burbuja-preview" onclick="document.getElementById('input-foto-0').click()">
+        <span id="burbuja-inicial">?</span>
+        <div class="burbuja-edit-hint">✏️</div>
+      </div>
+      <input type="file" id="input-foto-0" accept="image/*" onchange="subirFoto(this, 0)">
+      <div class="perfil-apodo" id="header-apodo">—</div>
+      <div class="perfil-carrera" id="header-carrera">—</div>
+      <div class="aura-badge-grande" id="header-aura-badge"></div>
+    </div>
+
+    <!-- FOTOS -->
+    <div class="card">
+      <div class="card-title">Mis fotos</div>
+      <div class="fotos-grid" id="fotos-grid">
+        <div class="foto-slot" id="slot-0" onclick="document.getElementById('input-foto-0').click()">
+          <span class="add-icon">+</span>
+          <span class="foto-badge">Perfil</span>
+        </div>
+        <div class="foto-slot" id="slot-1" onclick="document.getElementById('input-foto-1').click()">
+          <span class="add-icon">+</span>
+        </div>
+        <div class="foto-slot" id="slot-2" onclick="document.getElementById('input-foto-2').click()">
+          <span class="add-icon">+</span>
+        </div>
+      </div>
+      <input type="file" id="input-foto-1" accept="image/*" onchange="subirFoto(this, 1)">
+      <input type="file" id="input-foto-2" accept="image/*" onchange="subirFoto(this, 2)">
+      <p class="fotos-hint">📸 La primera foto aparece en tu burbuja del mapa. Máximo 3 fotos.</p>
+    </div>
+
+    <!-- EDITAR PERFIL -->
+    <div class="card">
+      <div class="card-title">Editar perfil</div>
+      <div class="alert" id="alerta-perfil"></div>
+      <div class="form-group">
+        <label class="form-label">Apodo</label>
+        <input class="input" type="text" id="input-apodo" placeholder="¿Cómo te conocen?" maxlength="30">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Descripción <span class="form-sublabel">(opcional, máx 150 caracteres)</span></label>
+        <input class="input" type="text" id="input-descripcion" placeholder="Cuéntanos algo de ti..." maxlength="150">
+      </div>
+      <button class="btn btn-primary" onclick="guardarPerfil()" style="width:100%;">Guardar cambios</button>
+    </div>
+
+    <!-- COLOR ANÓNIMO -->
+    <div class="card">
+      <div class="card-title">Tu identidad anónima</div>
+      <div class="color-lock-row">
+        <div class="color-lock-dot" id="color-lock-dot">🔒</div>
+        <div class="color-lock-info">
+          <p id="color-lock-texto">Color oculto</p>
+          <span>Solo se puede cambiar al inicio de cada temporada</span>
+        </div>
+        <button class="btn-revelar-color" id="btn-revelar-color" onclick="toggleColorAnonimo()">Revelar</button>
+      </div>
+    </div>
+
+    <!-- ESTADÍSTICAS DE REACCIONES -->
+    <div class="card">
+      <div class="card-title">Mis reacciones recibidas</div>
+      <div class="reacciones-stats">
+        <div class="stat-emoji-card"><div class="stat-emoji">❤️</div><div class="stat-nombre">Like</div><div class="stat-count" id="stat-heart">0</div></div>
+        <div class="stat-emoji-card"><div class="stat-emoji">👍</div><div class="stat-nombre">Buena onda</div><div class="stat-count" id="stat-thumb">0</div></div>
+        <div class="stat-emoji-card"><div class="stat-emoji">🔥</div><div class="stat-nombre">Sexy</div><div class="stat-count" id="stat-fire">0</div></div>
+        <div class="stat-emoji-card"><div class="stat-emoji">👀</div><div class="stat-nombre">Te veo</div><div class="stat-count" id="stat-eyes">0</div></div>
+        <div class="stat-emoji-card"><div class="stat-emoji">😭</div><div class="stat-nombre">Dramático</div><div class="stat-count" id="stat-cry">0</div></div>
+        <div class="stat-emoji-card"><div class="stat-emoji">🤮</div><div class="stat-nombre">No gracias</div><div class="stat-count" id="stat-vomit">0</div></div>
+      </div>
+    </div>
+
+    <!-- QUIÉN ME REACCIONÓ -->
+    <div class="card">
+      <div class="card-title">Quién me reaccionó (por color)</div>
+      <div class="reacciones-lista" id="reacciones-lista">
+        <div class="reacciones-vacio">Cargando... 🫧</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const usuario = JSON.parse(localStorage.getItem('bubbly_usuario') || 'null');
+    const token = localStorage.getItem('bubbly_token');
+    if (!usuario || !token) window.location.href = 'login.html';
+
+    const API = 'http://localhost:3001/api';
+
+    const AURAS = {
+      legendaria:  { color: '#FFD700', bg: 'rgba(255,215,0,0.15)',   emoji: '✦',  label: 'Legendaria' },
+      popular:     { color: '#FF69B4', bg: 'rgba(255,105,180,0.15)', emoji: '💫', label: 'Popular' },
+      misteriosa:  { color: '#a78bfa', bg: 'rgba(167,139,250,0.15)', emoji: '🌙', label: 'Misteriosa' },
+      caotica:     { color: '#FF2D2D', bg: 'rgba(255,45,45,0.15)',   emoji: '⚡', label: 'Caótica' },
+      toxica:      { color: '#39FF14', bg: 'rgba(57,255,20,0.12)',   emoji: '☠️', label: 'Tóxica' },
+      inteligente: { color: '#00BFFF', bg: 'rgba(0,191,255,0.15)',   emoji: '🧠', label: 'Inteligente' },
+      nueva:       { color: '#64748b', bg: 'rgba(100,116,139,0.1)',  emoji: '🫧', label: 'Nueva' },
+    };
+
+    const COLORES = { violeta: '#8B5CF6', azul: '#38BDF8', rosa: '#F472B6', naranja: '#FB923C' };
+    const NOMBRES_COLORES = { violeta: 'Violeta', azul: 'Azul', rosa: 'Rosa', naranja: 'Naranja' };
+
+    let colorRevelado = false;
+    let fotasActuales = [];
+
+    // ===== INICIAR =====
+    function iniciar() {
+      const aura = AURAS[usuario.tipoAura] || AURAS.nueva;
+      const colorHex = COLORES[usuario.colorAnonimo] || '#8B5CF6';
+
+      // Burbuja preview
+      const preview = document.getElementById('burbuja-preview');
+      preview.style.background = `radial-gradient(circle at 35% 35%, ${aura.color}40, ${aura.color}15)`;
+      preview.style.boxShadow = `0 0 25px ${aura.color}50`;
+      preview.style.border = `2px solid ${aura.color}60`;
+      document.getElementById('burbuja-inicial').textContent = usuario.apodo ? usuario.apodo[0].toUpperCase() : '?';
+
+      document.getElementById('header-apodo').textContent = usuario.apodo;
+      document.getElementById('header-carrera').textContent = usuario.carrera;
+
+      const badge = document.getElementById('header-aura-badge');
+      badge.textContent = `${aura.emoji} Aura ${aura.label}`;
+      badge.style.background = aura.bg;
+      badge.style.color = aura.color;
+      badge.style.border = `1px solid ${aura.color}40`;
+
+      document.getElementById('input-apodo').value = usuario.apodo || '';
+      document.getElementById('input-descripcion').value = usuario.descripcion || '';
+
+      // Color anónimo oculto
+      document.getElementById('color-lock-dot').style.background = colorHex;
+      document.getElementById('color-lock-dot').style.boxShadow = `0 0 10px ${colorHex}60`;
+      document.getElementById('color-lock-dot').textContent = '';
+
+      cargarMiPerfil();
+      cargarMisReacciones();
+    }
+
+    // ===== CARGAR PERFIL ACTUALIZADO =====
+    async function cargarMiPerfil() {
+      try {
+        const res = await fetch(`${API}/auth/yo`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = await res.json();
+        if (data.ok && data.usuario.fotos) {
+          fotasActuales = data.usuario.fotos;
+          renderFotos(fotasActuales);
+        }
+      } catch(e) {}
+    }
+
+    function renderFotos(fotos) {
+      for (let i = 0; i < 3; i++) {
+        const slot = document.getElementById(`slot-${i}`);
+        if (fotos[i]) {
+          slot.innerHTML = `
+            <img src="${fotos[i]}" alt="Foto ${i+1}">
+            ${i === 0 ? '<span class="foto-badge">Perfil</span>' : ''}
+            <button class="foto-delete" onclick="eliminarFoto(event, '${fotos[i]}')">✕</button>
+          `;
+          // Si es la foto de perfil, mostrarla en la burbuja
+          if (i === 0) {
+            const preview = document.getElementById('burbuja-preview');
+            preview.innerHTML = `<img src="${fotos[0]}" alt="Foto de perfil"><div class="burbuja-edit-hint">✏️</div>`;
+          }
+        } else {
+          slot.innerHTML = `
+            <span class="add-icon">+</span>
+            ${i === 0 ? '<span class="foto-badge">Perfil</span>' : ''}
+          `;
+          slot.onclick = () => document.getElementById(`input-foto-${i}`).click();
+        }
+      }
+    }
+
+    // ===== SUBIR FOTO =====
+    async function subirFoto(input, index) {
+      if (!input.files[0]) return;
+      if (fotasActuales.length >= 3) {
+        mostrarAlerta('Ya tienes 3 fotos. Elimina una antes de subir otra.', 'error');
+        return;
+      }
+
+      const slot = document.getElementById(`slot-${index}`);
+      slot.innerHTML = '<span style="font-size:12px;color:#64748b;">Subiendo...</span>';
+
+      const formData = new FormData();
+      formData.append('foto', input.files[0]);
+
+      try {
+        const res = await fetch(`${API}/perfil/foto`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          fotasActuales = data.fotos;
+          renderFotos(fotasActuales);
+          mostrarAlerta('¡Foto subida! 🫧', 'success');
+        } else {
+          mostrarAlerta(data.mensaje || 'Error al subir foto', 'error');
+          slot.innerHTML = '<span class="add-icon">+</span>';
+        }
+      } catch(e) {
+        mostrarAlerta('No se pudo conectar con el servidor', 'error');
+        slot.innerHTML = '<span class="add-icon">+</span>';
+      }
+
+      input.value = '';
+    }
+
+    // ===== ELIMINAR FOTO =====
+    async function eliminarFoto(e, url) {
+      e.stopPropagation();
+      if (!confirm('¿Eliminar esta foto?')) return;
+
+      try {
+        const res = await fetch(`${API}/perfil/foto`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ url })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          fotasActuales = data.fotos;
+          renderFotos(fotasActuales);
+          mostrarAlerta('Foto eliminada', 'success');
+        }
+      } catch(e) {
+        mostrarAlerta('Error al eliminar foto', 'error');
+      }
+    }
+
+    // ===== GUARDAR PERFIL =====
+    async function guardarPerfil() {
+      const apodo = document.getElementById('input-apodo').value.trim();
+      const descripcion = document.getElementById('input-descripcion').value.trim();
+
+      if (!apodo || apodo.length < 2) {
+        mostrarAlerta('El apodo debe tener al menos 2 caracteres', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API}/perfil`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ apodo, descripcion })
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          // Actualizar localStorage
+          const usuarioActualizado = { ...usuario, apodo: data.usuario.apodo, descripcion: data.usuario.descripcion };
+          localStorage.setItem('bubbly_usuario', JSON.stringify(usuarioActualizado));
+
+          document.getElementById('header-apodo').textContent = data.usuario.apodo;
+          document.getElementById('burbuja-inicial').textContent = data.usuario.apodo[0].toUpperCase();
+          mostrarAlerta('¡Perfil actualizado! 🫧', 'success');
+        } else {
+          mostrarAlerta(data.mensaje || 'Error al guardar', 'error');
+        }
+      } catch(e) {
+        mostrarAlerta('No se pudo conectar con el servidor', 'error');
+      }
+    }
+
+    // ===== COLOR ANÓNIMO =====
+    function toggleColorAnonimo() {
+      colorRevelado = !colorRevelado;
+      const texto = document.getElementById('color-lock-texto');
+      const btn = document.getElementById('btn-revelar-color');
+      texto.textContent = colorRevelado ? NOMBRES_COLORES[usuario.colorAnonimo] : 'Color oculto';
+      btn.textContent = colorRevelado ? 'Ocultar' : 'Revelar';
+    }
+
+    // ===== CARGAR REACCIONES =====
+    async function cargarMisReacciones() {
+      try {
+        const res = await fetch(`${API}/reacciones/mis-reacciones`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          // Estadísticas
+          document.getElementById('stat-heart').textContent = data.conteo['❤️'] || 0;
+          document.getElementById('stat-thumb').textContent = data.conteo['👍'] || 0;
+          document.getElementById('stat-fire').textContent  = data.conteo['🔥'] || 0;
+          document.getElementById('stat-eyes').textContent  = data.conteo['👀'] || 0;
+          document.getElementById('stat-cry').textContent   = data.conteo['😭'] || 0;
+          document.getElementById('stat-vomit').textContent = data.conteo['🤮'] || 0;
+
+          // Lista de quién reaccionó
+          const lista = document.getElementById('reacciones-lista');
+          if (data.reacciones.length === 0) {
+            lista.innerHTML = '<div class="reacciones-vacio">Aún no tienes reacciones 🫧</div>';
+          } else {
+            lista.innerHTML = data.reacciones.map(r => `
+              <div class="reaccion-item">
+                <div class="reaccion-color-dot tc-${r.colorAnonimo}"></div>
+                <div class="reaccion-texto">${NOMBRES_COLORES[r.colorAnonimo] || r.colorAnonimo} te reaccionó</div>
+                <div class="reaccion-emoji-big">${r.tipo}</div>
+              </div>
+            `).join('');
+          }
+        }
+      } catch(e) {
+        document.getElementById('reacciones-lista').innerHTML =
+          '<div class="reacciones-vacio">Error al cargar reacciones</div>';
+      }
+    }
+
+    // ===== ALERTAS =====
+    function mostrarAlerta(msg, tipo) {
+      const el = document.getElementById('alerta-perfil');
+      el.textContent = msg;
+      el.className = `alert alert-${tipo} show`;
+      setTimeout(() => el.className = 'alert', 3000);
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>

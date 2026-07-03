@@ -4,7 +4,7 @@ const Usuario = require('../models/Usuario');
 const obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.find({ activo: true })
-      .select('apodo carrera descripcion tipoAura auraScore foto colorAnonimo')
+      .select('apodo carrera descripcion tipoAura auraScore fotos colorAnonimo')
       .sort({ auraScore: -1 });
 
     res.json({ ok: true, usuarios });

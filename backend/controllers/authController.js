@@ -1,39 +1,27 @@
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/Usuario');
 
-// ===== UTILIDADES DE SEGURIDAD =====
-
-// Sanitizar strings — elimina caracteres peligrosos para XSS
 const sanitizar = (str) => {
   if (typeof str !== 'string') return '';
-  return str
-    .trim()
-    .replace(/[<>\"'`]/g, '')  // quita caracteres XSS
-    .substring(0, 500);         // limita longitud máxima
+  return str.trim().replace(/[<>"'`]/g, '').substring(0, 500);
 };
 
-// Validar email
 const esEmailValido = (email) => {
   const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return regex.test(email) && email.length <= 100;
 };
 
-// Validar que el valor esté en lista permitida (whitelist)
 const esValorPermitido = (valor, lista) => lista.includes(valor);
-
 const COLORES_VALIDOS = ['violeta', 'azul', 'rosa', 'naranja'];
 
-// Generar token JWT
 const generarToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   });
 };
 
-// ===== POST /api/auth/registro =====
 const registro = async (req, res) => {
   try {
-    // Sanitizar todos los inputs
     const email = sanitizar(req.body.email || '').toLowerCase();
     const password = (req.body.password || '').trim();
     const apodo = sanitizar(req.body.apodo || '');
@@ -41,7 +29,6 @@ const registro = async (req, res) => {
     const descripcion = sanitizar(req.body.descripcion || '');
     const colorAnonimo = sanitizar(req.body.colorAnonimo || '');
 
-    // Validaciones
     if (!email || !password || !apodo || !carrera || !colorAnonimo) {
       return res.status(400).json({ ok: false, mensaje: 'Todos los campos son obligatorios' });
     }
@@ -58,13 +45,11 @@ const registro = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'Color anónimo inválido' });
     }
 
-    // Verificar si ya existe
     const existente = await Usuario.findOne({ email });
     if (existente) {
       return res.status(400).json({ ok: false, mensaje: 'Este correo ya está registrado' });
     }
 
-    // Crear usuario
     const usuario = await Usuario.create({
       email, password, apodo, carrera,
       descripcion: descripcion.substring(0, 150),
@@ -81,8 +66,11 @@ const registro = async (req, res) => {
         id: usuario._id,
         apodo: usuario.apodo,
         carrera: usuario.carrera,
+        descripcion: usuario.descripcion,
         tipoAura: usuario.tipoAura,
-        colorAnonimo: usuario.colorAnonimo
+        auraScore: usuario.auraScore,
+        colorAnonimo: usuario.colorAnonimo,
+        fotos: usuario.fotos || []
       }
     });
 
@@ -92,7 +80,6 @@ const registro = async (req, res) => {
   }
 };
 
-// ===== POST /api/auth/login =====
 const login = async (req, res) => {
   try {
     const email = sanitizar(req.body.email || '').toLowerCase();
@@ -105,10 +92,8 @@ const login = async (req, res) => {
       return res.status(400).json({ ok: false, mensaje: 'Formato de correo inválido' });
     }
 
-    // Buscar usuario con password
     const usuario = await Usuario.findOne({ email }).select('+password');
     if (!usuario) {
-      // Mensaje genérico para no revelar si el email existe
       return res.status(401).json({ ok: false, mensaje: 'Correo o contraseña incorrectos' });
     }
 
@@ -127,10 +112,11 @@ const login = async (req, res) => {
         id: usuario._id,
         apodo: usuario.apodo,
         carrera: usuario.carrera,
+        descripcion: usuario.descripcion,
         tipoAura: usuario.tipoAura,
         auraScore: usuario.auraScore,
         colorAnonimo: usuario.colorAnonimo,
-        foto: usuario.foto
+        fotos: usuario.fotos || []
       }
     });
 
@@ -140,7 +126,7 @@ const login = async (req, res) => {
   }
 };
 
-// ===== GET /api/auth/yo (ruta protegida) =====
+// GET /api/auth/yo — ahora SÍ incluye fotos
 const obtenerYo = async (req, res) => {
   res.json({
     ok: true,
@@ -149,10 +135,10 @@ const obtenerYo = async (req, res) => {
       apodo: req.usuario.apodo,
       carrera: req.usuario.carrera,
       descripcion: req.usuario.descripcion,
-      foto: req.usuario.foto,
       tipoAura: req.usuario.tipoAura,
       auraScore: req.usuario.auraScore,
-      colorAnonimo: req.usuario.colorAnonimo
+      colorAnonimo: req.usuario.colorAnonimo,
+      fotos: req.usuario.fotos || []
     }
   });
 };

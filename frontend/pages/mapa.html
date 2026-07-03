@@ -31,7 +31,8 @@
     .burbuja:hover { transform: scale(1.12) !important; z-index: 10; }
     .burbuja:active { transform: scale(0.95) !important; }
     .burbuja-inner { width: 100%; height: 100%; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 2px; border: 2px solid rgba(255,255,255,0.15); overflow: hidden; }
-    .burbuja-foto { width: 55%; height: 55%; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; }
+    .burbuja-foto { width: 55%; height: 55%; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; overflow: hidden; }
+    .burbuja-foto img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
     .burbuja-nombre { font-size: clamp(8px, 1.5vw, 11px); font-weight: 600; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8); }
     .burbuja-aura-icon { font-size: 9px; opacity: 0.8; }
 
@@ -111,6 +112,7 @@
   <nav class="navbar">
     <div class="nav-logo">Bubbly 🫧</div>
     <div class="nav-actions">
+      <a href="perfil.html" class="nav-btn">👤 Mi perfil</a>
       <button class="nav-btn" onclick="alert('🏆 Ranking próximamente!')">🏆 Ranking</button>
       <button class="nav-btn danger" onclick="cerrarSesion()">Salir</button>
     </div>
@@ -167,6 +169,13 @@
     <div class="panel-apodo" id="panel-apodo">—</div>
     <div class="panel-carrera" id="panel-carrera">—</div>
     <div class="panel-desc" id="panel-desc"></div>
+
+    <!-- FOTOS DEL USUARIO -->
+    <div id="panel-fotos" style="display:none;">
+      <div style="font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">Fotos</div>
+      <div id="panel-fotos-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;"></div>
+    </div>
+
     <div class="panel-aura-badge" id="panel-aura-badge"></div>
     <div class="score-bar-wrap">
       <p><span>Aura Score</span><span id="panel-score">0</span></p>
@@ -294,7 +303,11 @@
 
         burbuja.innerHTML = `
           <div class="burbuja-inner">
-            <div class="burbuja-foto">${u.apodo ? u.apodo[0].toUpperCase() : '?'}</div>
+            <div class="burbuja-foto">${
+              u.fotos && u.fotos.length > 0
+                ? `<img src="${u.fotos[0]}" alt="${u.apodo}">`
+                : (u.apodo ? u.apodo[0].toUpperCase() : '?')
+            }</div>
             <div class="burbuja-nombre">${u.apodo}</div>
             <div class="burbuja-aura-icon">${aura.emoji}</div>
           </div>`;
@@ -331,7 +344,11 @@
       const aura = AURAS[u.tipoAura] || AURAS.nueva;
 
       const pb = document.getElementById('panel-burbuja');
-      pb.textContent = u.apodo ? u.apodo[0].toUpperCase() : '?';
+      if (u.fotos && u.fotos.length > 0) {
+        pb.innerHTML = `<img src="${u.fotos[0]}" alt="${u.apodo}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+      } else {
+        pb.textContent = u.apodo ? u.apodo[0].toUpperCase() : '?';
+      }
       pb.style.background = `radial-gradient(circle at 35% 35%, ${aura.color}40, ${aura.color}10)`;
       pb.style.boxShadow = `0 0 30px ${aura.color}50`;
       pb.style.border = `2px solid ${aura.color}60`;
@@ -339,6 +356,21 @@
       document.getElementById('panel-apodo').textContent = u.apodo;
       document.getElementById('panel-carrera').textContent = u.carrera;
       document.getElementById('panel-desc').textContent = u.descripcion || '';
+
+      // Mostrar fotos si tiene
+      const panelFotos = document.getElementById('panel-fotos');
+      const fotosGrid = document.getElementById('panel-fotos-grid');
+      if (u.fotos && u.fotos.length > 0) {
+        panelFotos.style.display = 'block';
+        fotosGrid.innerHTML = u.fotos.map(f => `
+          <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.05);">
+            <img src="${f}" style="width:100%;height:100%;object-fit:cover;" alt="foto">
+          </div>
+        `).join('');
+      } else {
+        panelFotos.style.display = 'none';
+        fotosGrid.innerHTML = '';
+      }
 
       const badge = document.getElementById('panel-aura-badge');
       badge.textContent = `${aura.emoji} Aura ${aura.label}`;
@@ -458,7 +490,7 @@
 
     function renderTicker(mensajes) {
       const content = document.getElementById('ticker-content');
-      const todos = [...mensajes, ...mensajes];
+      const todos = [...mensajes.reverse(), ...mensajes];
       content.innerHTML = todos.map(m => `
         <span class="ticker-msg">
           <span class="ticker-dot tc-${m.colorAnonimo}"></span>
