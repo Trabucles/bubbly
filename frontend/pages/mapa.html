@@ -490,13 +490,14 @@
 
     function renderTicker(mensajes) {
       const content = document.getElementById('ticker-content');
-      const todos = [...mensajes.reverse(), ...mensajes];
-      content.innerHTML = todos.map(m => `
+      const separador = `<span style="color:#a78bfa;font-size:16px;margin:0 20px;opacity:0.6;">✦ ✦ ✦</span>`;
+      const bloque = mensajes.map(m => `
         <span class="ticker-msg">
           <span class="ticker-dot tc-${m.colorAnonimo}"></span>
           ${m.texto}
-          <span style="color:#1e293b;margin-left:8px;">•••</span>
         </span>`).join('');
+      // Duplicar con separador visible entre ciclos
+      content.innerHTML = bloque + separador + bloque + separador;
     }
 
     function abrirTickerModal() {
