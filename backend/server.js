@@ -41,9 +41,9 @@ app.use('/api/', (req, res, next) => {
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-// --- CORRECCIÓN DE RUTAS ---
-// Usamos path.resolve para garantizar la ruta absoluta fuera de /backend
-app.use(express.static(path.resolve(__dirname, '..', 'frontend')));
+// --- CORRECCIÓN DE RUTAS PARA EJECUCIÓN DESDE RAÍZ ---
+// Como Railway ejecuta desde la raíz, buscamos 'frontend' directamente
+app.use(express.static(path.resolve(__dirname, 'frontend')));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/ticker', require('./routes/ticker'));
@@ -52,9 +52,9 @@ app.use('/api/reacciones', require('./routes/reacciones'));
 app.use('/api/perfil', require('./routes/perfil'));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, '..', 'frontend', 'pages', 'login.html'));
+  res.sendFile(path.resolve(__dirname, 'frontend', 'pages', 'login.html'));
 });
-// ---------------------------
+// ----------------------------------------------------
 
 app.listen(PORT, () => {
   console.log(`🫧 Bubbly corriendo en http://localhost:${PORT}`);
