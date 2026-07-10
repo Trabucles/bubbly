@@ -4,7 +4,7 @@
   "description": "Bubbly - Red Social Universitaria",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
+    "start": "node backend/server.js",
     "dev": "nodemon server.js"
   },
   "dependencies": {
