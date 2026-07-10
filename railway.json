@@ -1,0 +1,8 @@
+{
+  "build": {
+    "rootDirectory": "backend"
+  },
+  "deploy": {
+    "startCommand": "node server.js"
+  }
+}
