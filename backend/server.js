@@ -56,6 +56,6 @@ app.get('*', (req, res) => {
 });
 // -----------------------
 
-app.listen(PORT, () => {
-  console.log(`🫧 Bubbly corriendo en http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🫧 Bubbly corriendo en el puerto ${PORT}`);
 });
