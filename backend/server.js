@@ -29,9 +29,14 @@ app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/reacciones', require('./routes/reacciones'));
 app.use('/api/perfil', require('./routes/perfil'));
 
-// --- RUTA FALLBACK (SPA) ---
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
+// --- RAIZ: mandar directo al login ---
+app.get('/', (req, res) => {
+  res.redirect('/pages/login.html');
+});
+
+// --- RUTA FALLBACK (404 real, ya no sirve login.html a cualquier ruta) ---
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, '../frontend/pages/login.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
