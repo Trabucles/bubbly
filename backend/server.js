@@ -22,7 +22,6 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-  // ✅ Agregado res.cloudinary.com para permitir cargar fotos
   res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com res.cloudinary.com; img-src 'self' data: res.cloudinary.com;");
   next();
 });
@@ -39,21 +38,23 @@ app.use('/api/', (req, res, next) => {
   next();
 });
 
-// ✅ Subido a 2mb para permitir subida de fotos
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
-app.use(express.static(path.join(__dirname, '../frontend')));
+
+// --- CORRECCIÓN DE RUTAS ---
+// Usamos path.join(__dirname, '..', 'nombre_carpeta') para ser más precisos
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/ticker', require('./routes/ticker'));
 app.use('/api/usuarios', require('./routes/usuarios'));
 app.use('/api/reacciones', require('./routes/reacciones'));
-// ✅ Nueva ruta de perfil (fotos, apodo, descripción)
 app.use('/api/perfil', require('./routes/perfil'));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/pages/login.html'));
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'pages', 'login.html'));
 });
+// ---------------------------
 
 app.listen(PORT, () => {
   console.log(`🫧 Bubbly corriendo en http://localhost:${PORT}`);
