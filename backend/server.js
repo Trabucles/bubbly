@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 3001;
 connectDB();
 
 const corsOptions = {
-  origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+  origin: '*', // Esto permite que tu frontend en Railway se comunique con el backend
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
