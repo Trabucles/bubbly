@@ -8,20 +8,46 @@ const PESOS = {
 const calcularAura = (conteo) => {
   const total = Object.values(conteo).reduce((a, b) => a + b, 0);
   if (total === 0) return 'nueva';
+
+  // Necesitamos mínimo 3 reacciones para clasificar
+  if (total < 3) return 'nueva';
+
   const pct = (tipo) => (conteo[tipo] || 0) / total;
-  if (pct('❤️') >= 0.4) return 'popular';
+
+  // Positivas vs negativas
+  const positivasPct = pct('❤️') + pct('👍') + pct('🔥');
+  const negativasPct = pct('🤮') + pct('😭');
+
+  // Tóxica: mayoría de vómitos
+  if (pct('🤮') >= 0.5) return 'toxica';
+
+  // Caótica: mezcla extrema (muchas positivas Y muchas negativas)
+  if (positivasPct >= 0.3 && negativasPct >= 0.3) return 'caotica';
+
+  // Legendaria: mayoría de fuego 🔥
   if (pct('🔥') >= 0.4) return 'legendaria';
+
+  // Popular: mayoría de corazones ❤️
+  if (pct('❤️') >= 0.4) return 'popular';
+
+  // Misteriosa: mayoría de ojos 👀
   if (pct('👀') >= 0.4) return 'misteriosa';
-  if (pct('🤮') >= 0.4) return 'toxica';
-  if (pct('😭') >= 0.4) return 'caotica';
+
+  // Inteligente: mayoría de pulgar 👍
   if (pct('👍') >= 0.4) return 'inteligente';
-  const score = Object.entries(conteo).reduce((sum, [tipo, cant]) => sum + (PESOS[tipo] || 0) * cant, 0);
-  if (score >= 100) return 'legendaria';
-  if (score >= 50)  return 'popular';
-  if (score >= 20)  return 'inteligente';
-  if (score >= 0)   return 'misteriosa';
-  if (score >= -30) return 'caotica';
-  return 'toxica';
+
+  // Si hay más positivas que negativas
+  if (positivasPct > negativasPct) {
+    const score = Object.entries(conteo).reduce((sum, [tipo, cant]) => sum + (PESOS[tipo] || 0) * cant, 0);
+    if (score >= 50) return 'legendaria';
+    if (score >= 25) return 'popular';
+    return 'inteligente';
+  }
+
+  // Si hay más negativas
+  if (negativasPct > positivasPct) return 'toxica';
+
+  return 'misteriosa';
 };
 
 // POST /api/reacciones — enviar o cambiar reacción
@@ -52,7 +78,18 @@ const enviarReaccion = async (req, res) => {
     const auraScore = Math.max(0, score);
     await Usuario.findByIdAndUpdate(receptorId, { auraScore, tipoAura });
 
-    res.json({ ok: true, mensaje: 'Reacción registrada', auraScore, tipoAura });
+    // Verificar conexión mutua (❤️ de ambos lados)
+    let conexion = false;
+    if (tipo === '❤️') {
+      const reaccionMutua = await Reaccion.findOne({
+        emisorId: receptorId,
+        receptorId: emisorId,
+        tipo: '❤️'
+      });
+      if (reaccionMutua) conexion = true;
+    }
+
+    res.json({ ok: true, mensaje: 'Reacción registrada', auraScore, tipoAura, conexion });
   } catch (error) {
     res.status(500).json({ ok: false, mensaje: 'Error del servidor' });
   }
@@ -61,7 +98,10 @@ const enviarReaccion = async (req, res) => {
 // GET /api/reacciones/:receptorId — reacción actual del usuario hacia alguien
 const obtenerMiReaccion = async (req, res) => {
   try {
-    const reaccion = await Reaccion.findOne({ emisorId: req.usuario._id, receptorId: req.params.receptorId });
+    const reaccion = await Reaccion.findOne({
+      emisorId: req.usuario._id,
+      receptorId: req.params.receptorId
+    });
     res.json({ ok: true, reaccion: reaccion ? reaccion.tipo : null });
   } catch (error) {
     res.status(500).json({ ok: false, mensaje: 'Error del servidor' });
