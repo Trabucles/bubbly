@@ -196,7 +196,7 @@
           localStorage.setItem('bubbly_token', data.token);
           localStorage.setItem('bubbly_usuario', JSON.stringify(data.usuario));
           mostrarAlerta(`¡Hola ${sanitizar(data.usuario.apodo)}! Entrando al mapa... 🫧`, 'success');
-          setTimeout(() => window.location.href = 'mapa.html', 1200);
+         setTimeout(() => window.location.href = '/pages/mapa.html', 1200);
         } else { mostrarAlerta(data.mensaje || 'Error al iniciar sesión'); }
       } catch (e) { mostrarAlerta('No se pudo conectar con el servidor.'); }
       finally { setLoading('btn-login','spin-login','txt-login', false); }
@@ -226,7 +226,7 @@
           localStorage.setItem('bubbly_token', data.token);
           localStorage.setItem('bubbly_usuario', JSON.stringify(data.usuario));
           mostrarAlerta(`¡Bienvenido a Bubbly, ${sanitizar(data.usuario.apodo)}! 🫧`, 'success');
-          setTimeout(() => window.location.href = 'mapa.html', 1200);
+          setTimeout(() => window.location.href = '/pages/mapa.html', 1200);
         } else { mostrarAlerta(data.mensaje || 'Error al registrarse'); }
       } catch (e) { mostrarAlerta('No se pudo conectar con el servidor.'); }
       finally { setLoading('btn-registro','spin-registro','txt-registro', false); }
@@ -239,7 +239,7 @@
       }
     });
 
-    if (localStorage.getItem('bubbly_token')) window.location.href = 'mapa.html';
+    if (localStorage.getItem('bubbly_token')) window.location.href = '/pages/mapa.html';
   </script>
 </body>
 </html>

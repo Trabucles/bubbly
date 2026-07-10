@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
   <title>Bubbly — Mapa Social</title>
-  <link rel="stylesheet" href="../css/global.css">
+<link rel="stylesheet" href="../css/global.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #080812; color: #e2e8f0; font-family: 'Space Grotesk', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
@@ -208,7 +208,7 @@
   <script>
     const usuario = JSON.parse(localStorage.getItem('bubbly_usuario') || 'null');
     const token = localStorage.getItem('bubbly_token');
-    if (!usuario || !token) window.location.href = 'login.html';
+    if (!usuario || !token) window.location.href = '/pages/login.html';
 
    const API = 'https://bubbly-production.up.railway.app/api';
 
@@ -534,7 +534,7 @@
     function cerrarSesion() {
       localStorage.removeItem('bubbly_token');
       localStorage.removeItem('bubbly_usuario');
-      window.location.href = 'login.html';
+      window.location.href = '/pages/login.html';
     }
 
     // ===== INICIAR =====
